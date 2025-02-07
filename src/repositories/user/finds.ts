@@ -32,3 +32,20 @@ export function findById(
     return Helpers.fromObjectToSchema(UserSchema.Schema)(result);
   };
 }
+
+export function findByusername(
+  prismaClient: PrismaClient
+): UserRepository["findByUsername"] {
+  return async (username) => {
+    const result = await prismaClient.user.findUnique({
+      where: {
+        deletedAt: null,
+        username,
+      },
+    });
+    if (result === null) {
+      return null;
+    }
+    return Helpers.fromObjectToSchema(UserSchema.Schema)(result);
+  };
+}

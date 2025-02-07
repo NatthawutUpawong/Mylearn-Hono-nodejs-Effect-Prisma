@@ -9,6 +9,7 @@ export default function initUserRepository(prismaClient: PrismaClient): Types.Us
   return {
     create: Creates.create(prismaClient),
     findById: Finds.findById(prismaClient),
+    findByUsername: Finds.findByusername(prismaClient),
     findMany: Finds.findMany(prismaClient),
     hardRemove: Removes.hardRemoveById(prismaClient),
     remove: Removes.remove(prismaClient),

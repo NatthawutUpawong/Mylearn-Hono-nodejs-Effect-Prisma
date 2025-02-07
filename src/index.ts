@@ -4,10 +4,10 @@ import { Hono } from "hono"
 import { setupOpenApi } from "./config/openapi/setup-openapi.js"
 import { setupScalarDocs } from "./config/openapi/setup-scalar-docs.js"
 import healthzApp from "./controllers/healthz.js"
-import initUserRepository from "./repositories/user/index.js"
-import prismaClient from "./repositories/prisma.js"
-import { initUserService } from "./services/user/index.js"
 import * as UserController from "./controllers/users/index.js"
+import prismaClient from "./repositories/prisma.js"
+import initUserRepository from "./repositories/user/index.js"
+import { initUserService } from "./services/user/index.js"
 
 
 config()

@@ -23,13 +23,16 @@
     "@scalar/hono-api-reference": "^0.5.171",
     "argon2": "^0.41.1",
     "bcrypt": "^5.1.1",
+    "dotenv": "^16.4.7",
     "effect": "^3.12.9",
     "hono": "^4.6.20",
-    "hono-openapi": "^0.4.4"
+    "hono-openapi": "^0.4.4",
+    "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^4.1.1",
     "@types/bcrypt": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.8",
     "@types/node": "^20.17.17",
     "eslint": "^9.19.0",
     "eslint-plugin-perfectionist": "^4.8.0",

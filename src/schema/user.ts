@@ -27,3 +27,12 @@ export type CreateUserEncoded = S.Schema.Encoded<typeof CreateSchema>
 export const UpdateSchema = Schema.omit("_tag", "createdAt", "updatedAt", "deletedAt")
 export type UpdateUser = S.Schema.Type<typeof UpdateSchema>
 export type UpdateUserEncoded = S.Schema.Encoded<typeof UpdateSchema>
+
+export const LoginSchema = Schema.pick( "username", "password")
+export type LoginUser = S.Schema.Type<typeof LoginSchema>
+export type LoginUserEncoded = S.Schema.Encoded<typeof LoginSchema>
+
+export const UsernameSchema = S.String
+// export type password = Omit<User, "id" | "username" | "createdAt" | "updatedAt" | "deletedAt" | "_tag">
+export type UsernameLog = S.Schema.Type<typeof UsernameSchema>
+export type UsernameLogEncoded = S.Schema.Encoded<typeof UsernameSchema>
