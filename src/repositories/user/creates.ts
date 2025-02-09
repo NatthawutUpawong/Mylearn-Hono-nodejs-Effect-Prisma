@@ -1,12 +1,19 @@
 import type { PrismaClient } from "@prisma/client"
 import type { UserRepository } from "../../types/repositories/user.js"
+import { Effect } from "effect"
 import { Helpers, UserSchema } from "../../schema/index.js"
+import * as Errors from "../../types/error/user-errors.js"
 
 export function create(prismaClient: PrismaClient): UserRepository["create"] {
-  return async (data) => {
-    const result = await prismaClient.user.create({
-      data,
-    })
-    return Helpers.fromObjectToSchema(UserSchema.Schema)(result)
-  }
+  return data => Effect.tryPromise({
+    catch: Errors.CreateUserError.new(),
+    try: () => prismaClient.user.create({
+      data
+    }),
+    
+  }).pipe(
+    Effect.andThen(Helpers.fromObjectToSchemaEffect(UserSchema.Schema)),
+    Effect.withSpan("create.user.repositoty")
+  )
+ 
 }

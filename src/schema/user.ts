@@ -5,7 +5,7 @@ import * as GeneralSchema from "./general.js"
 export const Schema = S.Struct({
   id: Branded.UserId,
   password: S.String,
-  username: S.String.annotations({ jsonSchema: { example: "John Doe", title: "name", type: "string" } }),
+  username: S.String,
   ...GeneralSchema.TimeStampSchema.fields,
   _tag: S.Literal("User").pipe(S.optional, S.withDefaults({
     constructor: () => "User" as const,
@@ -28,7 +28,7 @@ export const UpdateSchema = Schema.omit("_tag", "createdAt", "updatedAt", "delet
 export type UpdateUser = S.Schema.Type<typeof UpdateSchema>
 export type UpdateUserEncoded = S.Schema.Encoded<typeof UpdateSchema>
 
-export const LoginSchema = Schema.pick( "username", "password")
+export const LoginSchema = Schema.pick("username", "password")
 export type LoginUser = S.Schema.Type<typeof LoginSchema>
 export type LoginUserEncoded = S.Schema.Encoded<typeof LoginSchema>
 

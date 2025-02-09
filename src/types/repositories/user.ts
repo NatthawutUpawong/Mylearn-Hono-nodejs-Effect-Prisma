@@ -1,24 +1,23 @@
+import type { Effect } from "effect"
+
+import type { NoSuchElementException } from "effect/Cause"
+import type { ParseError } from "effect/ParseResult"
 import type { Branded, UserSchema } from "../../schema/index.js"
+import type * as Errors from "../error/user-errors.js"
+
 
 type User = UserSchema.User
-type UserArray = UserSchema.UserArray
-export type UserWithoutId = Omit<User, "id">
-export type UserLogin = Omit<User, "createdAt" | "updatedAt" | "deletedAt" | "_tag">
-export type Username = Omit<User, "id" | "password" | "createdAt" | "updatedAt" | "deletedAt" | "_tag">
-export type password = Omit<User, "id" | "username" | "createdAt" | "updatedAt" | "deletedAt" | "_tag">
-
-export type CreateUsereDto = Omit<User, "id" | "createdAt" | "updatedAt" | "deletedAt" | "_tag">
-export type UpdateUserDto = CreateUsereDto & {
-  id?: User["id"]
-}
 
 export type UserRepository = {
-  create: (data: CreateUsereDto) => Promise<User>
-  findById: (id: Branded.UserId) => Promise<User | null>
-  findMany: () => Promise<UserArray>
-  update: (id: Branded.UserId, data: UpdateUserDto) => Promise<User | null>
-  updatePartial: (id: Branded.UserId, data: Partial<UpdateUserDto>) => Promise<User | null>
-  remove: (id: Branded.UserId) => Promise<User | null>
-  hardRemove: (id: Branded.UserId) => Promise<User | null>
-  findByUsername: (username: string) => Promise<User | null>
+  create: (data: UserSchema.CreateUserEncoded) => Effect.Effect<User, Errors.CreateUserError | ParseError>
+  findById: (id: Branded.UserId) => Effect.Effect<User, Errors.FindUserByIdError | ParseError | NoSuchElementException>
+  findMany: () => Effect.Effect<UserSchema.UserArray, Errors.FindManyUserError>
+  update: (id: Branded.UserId, data: UserSchema.UpdateUserEncoded) => Effect.Effect<User, Errors.UpdateUserErroe | ParseError>
+  updatePartial: (id: Branded.UserId, data: Partial<UserSchema.UpdateUserEncoded>) => Effect.Effect<User, Errors.UpdateUserErroe>
+  remove: (id: Branded.UserId) => Effect.Effect<User, Errors.RemoveUserError>
+  hardRemove: (id: Branded.UserId) => Effect.Effect<User, Errors.RemoveUserError>
+  findByUsername: (username: string) => Effect.Effect<User, Errors.FindUserByUsernameError | ParseError | NoSuchElementException>
 }
+
+// ParseError คือ Parse Effect Schema ไม่ผ่าน
+// NoSuchElementException เป็น error ที่ใช้บอกว่าไม่มี element นั้นๆ
