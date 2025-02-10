@@ -21,7 +21,7 @@ function initUserRepository(prismaClient: PrismaClient): Types.UserRepository {
   }
 }
 
-export class AdminRepositoryContext extends Context.Tag("repository/Employee")<AdminRepositoryContext, Types.UserRepository>() {
+export class UserRepositoryContext extends Context.Tag("repository/User")<UserRepositoryContext, Types.UserRepository>() {
   // method Live ที่จะใช้สร้าง Context EmployeeRepositoryContext จะสร้างผ่าน Layer.effect(<class name>, <Effect value>) รับ parameters 2 ตัว
   static Live = Layer.effect(this, Effect.gen(function* () {
     const prismaClient = yield * PrismaClientContext

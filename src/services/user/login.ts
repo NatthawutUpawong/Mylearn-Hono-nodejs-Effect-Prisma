@@ -7,7 +7,7 @@ import jwt from "jsonwebtoken"
 dotenv.config()
 
 // eslint-disable-next-line node/prefer-global/process
-const SECRET_KEY = process.env.SECRET_KEY || "default-secret-key" // ค่าพื้นฐานในกรณีที่ไม่มีการกำหนดใน .env
+const SECRET_KEY = process.env.SECRET_KEY || "default-secret-key" 
 
 export function login(userRepository: UserRepository): UserService["login"] {
   return async (username, data) => {
@@ -15,8 +15,8 @@ export function login(userRepository: UserRepository): UserService["login"] {
     if (!user)
       throw new Error("Invalid username or password")
 
-    const isMatch = await argon2.verify(user.password, data.password)
-    if (!isMatch)
+    const match = await argon2.verify(user.password, data.password)
+    if (!match)
       throw new Error("Invalid username or password")
 
     const token = jwt.sign({ username: data.username }, SECRET_KEY, { expiresIn: "1h" })

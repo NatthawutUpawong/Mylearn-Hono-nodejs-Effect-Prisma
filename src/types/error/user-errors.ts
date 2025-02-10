@@ -18,7 +18,7 @@ export class FindUserByUsernameError extends Data.TaggedError("FindUserByUsernam
     static new =  createErrorFactory(this)
 }
 
-export class UpdateUserErroe extends Data.TaggedError("UpdateUserErroe")<ErrorMsg> {
+export class UpdateUserErro extends Data.TaggedError("UpdateUserErroe")<ErrorMsg> {
     static new =  createErrorFactory(this)
 }
 
