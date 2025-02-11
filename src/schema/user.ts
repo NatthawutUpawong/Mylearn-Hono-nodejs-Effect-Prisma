@@ -4,8 +4,8 @@ import * as GeneralSchema from "./general.js"
 
 export const Schema = S.Struct({
   id: Branded.UserId,
-  password: S.String,
   username: S.String,
+  password: S.String,
   ...GeneralSchema.TimeStampSchema.fields,
   _tag: S.Literal("User").pipe(S.optional, S.withDefaults({
     constructor: () => "User" as const,

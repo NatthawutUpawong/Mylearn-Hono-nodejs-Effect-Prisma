@@ -7,17 +7,17 @@ import * as Removes from "./removes.js"
 import * as Updates from "./updates.js"
 import PrismaClientContext from "../prisma.js"
 
-
 function initUserRepository(prismaClient: PrismaClient): Types.UserRepository {
   return {
     create: Creates.create(prismaClient),
-    findById: Finds.findById(prismaClient),
+    findById: Finds.findById(prismaClient,),
     findByUsername: Finds.findByusername(prismaClient),
     findMany: Finds.findMany(prismaClient),
     hardRemove: Removes.hardRemoveById(prismaClient),
     remove: Removes.remove(prismaClient),
     update: Updates.update(prismaClient),
     updatePartial: Updates.updatePartial(prismaClient),
+    findallById: Finds.findallById(prismaClient)
   }
 }
 

@@ -11,6 +11,7 @@ type User = UserSchema.User
 export type UserRepository = {
   create: (data: UserSchema.CreateUserEncoded) => Effect.Effect<User, Errors.CreateUserError | ParseError>
   findById: (id: Branded.UserId) => Effect.Effect<User, Errors.FindUserByIdError | ParseError | NoSuchElementException>
+  findallById: (id: Branded.UserId) => Effect.Effect<User, Errors.FindUserByIdError | ParseError | NoSuchElementException>
   findMany: () => Effect.Effect<UserSchema.UserArray, Errors.FindManyUserError>
   update: (id: Branded.UserId, data: UserSchema.UpdateUserEncoded) => Effect.Effect<User, Errors.UpdateUserErro | ParseError>
   updatePartial: (id: Branded.UserId, data: Partial<UserSchema.UpdateUserEncoded>) => Effect.Effect<User, Errors.UpdateUserErro>

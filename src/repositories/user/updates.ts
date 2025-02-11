@@ -1,31 +1,37 @@
 import type { PrismaClient } from "@prisma/client"
 import type { UserRepository } from "../../types/repositories/user.js"
 import { Helpers, UserSchema } from "../../schema/index.js"
+import * as Errors from "../../types/error/user-errors.js"
+import { Effect } from "effect"
 
 export function update(prismaClient: PrismaClient): UserRepository["update"] {
-  return async (id, data) => {
-    const result = await prismaClient.user.update({
+  return (id, data) => Effect.tryPromise({
+    catch: Errors.UpdateUserErro.new(),
+    try: () => prismaClient.user.update({
       data,
       where: {
         deletedAt: null,
-        id,
-      },
-    })
-
-    return Helpers.fromObjectToSchema(UserSchema.Schema)(result)
-  }
+        id
+      }
+    }),
+  }).pipe(
+    Effect.andThen(Helpers.fromObjectToSchema(UserSchema.Schema)),
+    Effect.withSpan("update.user.repository")
+  )
 }
 
 export function updatePartial(prismaClient: PrismaClient): UserRepository["updatePartial"] {
-  return async (id, data) => {
-    const result = await prismaClient.user.update({
+  return (id, data) => Effect.tryPromise({
+    catch: Errors.UpdateUserErro.new(),
+    try: () => prismaClient.user.update({
       data,
       where: {
         deletedAt: null,
-        id,
-      },
-    })
-
-    return Helpers.fromObjectToSchema(UserSchema.Schema)(result)
-  }
+        id
+      }
+    }),
+  }).pipe(
+    Effect.andThen(Helpers.fromObjectToSchema(UserSchema.Schema)),
+    Effect.withSpan("updatePartial.user.repository")
+  )
 }

@@ -29,6 +29,22 @@ export function findById(prismaClient: PrismaClient): UserRepository["findById"]
       },
     })
   }).pipe(
+    Effect.andThen(Effect.fromNullable),
+    Effect.andThen(Helpers.fromObjectToSchema(UserSchema.Schema)),
+    Effect.withSpan("find-by-id.user.repository")
+  )
+}
+
+export function findallById(prismaClient: PrismaClient): UserRepository["findallById"] {
+  return id => Effect.tryPromise({
+    catch: Errors.FindUserByIdError.new(),
+    try: () => prismaClient.user.findUnique({
+      where: {
+        id
+      },
+    })
+  }).pipe(
+    Effect.andThen(Effect.fromNullable),
     Effect.andThen(Helpers.fromObjectToSchema(UserSchema.Schema)),
     Effect.withSpan("find-by-id.user.repository")
   )
@@ -44,6 +60,7 @@ export function findByusername( prismaClient: PrismaClient): UserRepository["fin
       },
     })
   }).pipe(
+    Effect.andThen(Effect.fromNullable),
     Effect.andThen(Helpers.fromObjectToSchema(UserSchema.Schema)),
     Effect.withSpan("find-by-username.username.repository")
   )

@@ -5,6 +5,9 @@ import { createErrorFactory, type ErrorMsg } from "../error.helpers.js"
 export class CreateUserError extends Data.TaggedError("CreateUserError")<ErrorMsg> {
     static new = (msg?: string) => (error?: unknown) => new CreateUserError({ error, msg})
 }
+export class hashedPasswordError extends Data.TaggedError("hashedPasswordError")<ErrorMsg> {
+    static new = (msg?: string) => (error?: unknown) => new hashedPasswordError({ error, msg})
+}
 
 export class FindUserByIdError extends Data.TaggedError("FindUserByIdError")<ErrorMsg> {
     static new =  createErrorFactory(this)
@@ -35,5 +38,12 @@ export class LoginUserError extends Data.TaggedError("LoginUserError")<ErrorMsg>
 }
 
 export class LogoutUserError extends Data.TaggedError("LogoutUserError")<ErrorMsg> {
+    static new =  createErrorFactory(this)
+}
+
+export class UsernameAlreadyExitError extends Data.TaggedError("UsernameAlreadyExitError")<ErrorMsg> {
+    static new =  createErrorFactory(this)
+}
+export class IdAlreadyExitError extends Data.TaggedError("IdAlreadyExitError")<ErrorMsg> {
     static new =  createErrorFactory(this)
 }

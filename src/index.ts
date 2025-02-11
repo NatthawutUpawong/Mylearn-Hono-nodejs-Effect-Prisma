@@ -5,9 +5,9 @@ import { setupOpenApi } from "./config/openapi/setup-openapi.js"
 import { setupScalarDocs } from "./config/openapi/setup-scalar-docs.js"
 import healthzApp from "./controllers/healthz.js"
 import * as UserController from "./controllers/users/index.js"
-import prismaClient from "./repositories/prisma.js"
-import initUserRepository from "./repositories/user/index.js"
-import { initUserService } from "./services/user/index.js"
+// import prismaClient from "./repositories/prisma.js"
+// import initUserRepository from "./repositories/user/index.js"
+// import { initUserService } from "./services/user/index.js"
 
 
 config()
@@ -15,9 +15,9 @@ config()
 const app = new Hono()
 setupOpenApi(app)
 
-const userRepository = initUserRepository(prismaClient)
-const userService = initUserService(userRepository)
-app.route("/users", UserController.setupUserRoutes(userService))
+// const userRepository = initUserRepository(prismaClient)
+// const userService = initUserService(userRepository)
+app.route("/users", UserController.setupUserRoutes())
 
 app.route("/docs", setupScalarDocs())
 app.route("/healthz", healthzApp)
