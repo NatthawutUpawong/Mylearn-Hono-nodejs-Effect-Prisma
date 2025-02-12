@@ -18,6 +18,8 @@ export type UserRepository = {
   remove: (id: Branded.UserId) => Effect.Effect<User, Errors.RemoveUserError>
   hardRemove: (id: Branded.UserId) => Effect.Effect<User, Errors.RemoveUserError>
   findByUsername: (username: string) => Effect.Effect<User, Errors.FindUserByUsernameError | ParseError | NoSuchElementException>
+  // login: (username:string, password: string) => Effect.Effect<User | { token: string }, Errors.LoginUserError | NoSuchElementException>
+
 }
 
 // ParseError คือ Parse Effect Schema ไม่ผ่าน

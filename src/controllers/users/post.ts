@@ -1,11 +1,11 @@
+import { Effect } from "effect"
 import { Hono } from "hono"
 import * as honoOpenapi from "hono-openapi"
 import { resolver, validator } from "hono-openapi/effect"
+import { ServicesRuntime } from "../../runtime/indext.js"
 import { Helpers, UserSchema } from "../../schema/index.js"
+import { PasswordServiceContext } from "../../services/password/hashpassword.js"
 import { UserServiceContext } from "../../services/user/index.js"
-import { Effect,} from "effect"
-import {ServicesRuntime} from "../../runtime/indext.js"
-import {PasswordServiceContext} from "../../services/password/hashpassword.js"
 import * as Errors from "../../types/error/user-errors.js"
 
 const responseSchema = UserSchema.Schema.omit("deletedAt")
@@ -39,23 +39,25 @@ export function setupUserPostRoutes() {
       userServices: UserServiceContext,
     }).pipe(
       Effect.tap(() => Effect.log("Signup starting")),
-      Effect.tap(({userServices}) => userServices.findByUsername(body.username).pipe(
-        Effect.andThen(() => 
-        Effect.fail(Errors.UsernameAlreadyExitError.new("username alredy exit")()),
+      Effect.tap(({ userServices }) => userServices.findByUsername(body.username).pipe(
+        Effect.andThen(() =>
+          Effect.fail(Errors.UsernameAlreadyExitError.new("username alredy exit")()),
         ),
-        Effect.catchTag("NoSuchElementException", () => Effect.void), 
+        Effect.catchTag("NoSuchElementException", () => Effect.void),
 
       )),
-      Effect.bind("hashedPassword", ({passwordService}) => passwordService.hashedPassword(body.password)),
-      Effect.andThen(({hashedPassword, userServices}) => userServices.create({...body, password: hashedPassword}),
+      Effect.bind("hashedPassword", ({ passwordService }) => passwordService.hashedPassword(body.password)),
+      Effect.andThen(({ hashedPassword, userServices }) => userServices.create({ ...body, password: hashedPassword }),
       ),
       Effect.andThen(parseResponse),
       Effect.andThen(data => c.json(data, 201)),
-      Effect.orElseSucceed(() => c.json({message: "create failed"}, 500)),
+      Effect.catchTags({
+        UsernameAlreadyExitError: () => Effect.succeed(c.json({ message: `Username: ${body.username} already exists` }, 500)),
+        
+      }),
       Effect.withSpan("POST /.user.controller"),
     )
 
-    
     const result = await ServicesRuntime.runPromise(programs)
     return result
   })

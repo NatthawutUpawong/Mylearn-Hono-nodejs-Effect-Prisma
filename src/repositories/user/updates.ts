@@ -1,8 +1,8 @@
 import type { PrismaClient } from "@prisma/client"
 import type { UserRepository } from "../../types/repositories/user.js"
+import { Effect } from "effect"
 import { Helpers, UserSchema } from "../../schema/index.js"
 import * as Errors from "../../types/error/user-errors.js"
-import { Effect } from "effect"
 
 export function update(prismaClient: PrismaClient): UserRepository["update"] {
   return (id, data) => Effect.tryPromise({

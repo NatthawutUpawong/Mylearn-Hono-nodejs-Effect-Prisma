@@ -5,6 +5,7 @@ import * as GeneralSchema from "./general.js"
 export const Schema = S.Struct({
   id: Branded.UserId,
   username: S.String,
+  // eslint-disable-next-line perfectionist/sort-objects
   password: S.String,
   ...GeneralSchema.TimeStampSchema.fields,
   _tag: S.Literal("User").pipe(S.optional, S.withDefaults({
@@ -33,6 +34,9 @@ export type LoginUser = S.Schema.Type<typeof LoginSchema>
 export type LoginUserEncoded = S.Schema.Encoded<typeof LoginSchema>
 
 export const UsernameSchema = S.String
-// export type password = Omit<User, "id" | "username" | "createdAt" | "updatedAt" | "deletedAt" | "_tag">
 export type UsernameLog = S.Schema.Type<typeof UsernameSchema>
 export type UsernameLogEncoded = S.Schema.Encoded<typeof UsernameSchema>
+
+export const PasswordSchema = Schema.pick("password")
+export type Password = S.Schema.Type<typeof PasswordSchema>
+export type PasswordEndcoded = S.Schema.Encoded<typeof PasswordSchema>

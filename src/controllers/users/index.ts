@@ -10,9 +10,9 @@ export function setupUserRoutes() {
 
   app.route("/", GetRoutes.setupUserGetRoutes())
   app.route("/", PostRoutes.setupUserPostRoutes())
-  // app.route("/", LoginRoutes.setupUserLoginRoute(userService))
+  app.route("/", LoginRoutes.setupUserLoginRoute())
   app.route("/", PutRoutes.setupUserPutRoutes())
-  // app.route("/", DeleteRoutes.setupDeleteRoutes(userService))
+  app.route("/", DeleteRoutes.setupDeleteRoutes())
 
   return app
 }

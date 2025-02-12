@@ -1,15 +1,16 @@
 import type { PrismaClient } from "@prisma/client"
 import type * as Types from "../../types/repositories/user.js"
+import { Context, Effect, Layer } from "effect"
+import PrismaClientContext from "../prisma.js"
 import * as Creates from "./creates.js"
 import * as Finds from "./finds.js"
-import { Context, Effect, Layer } from "effect"
 import * as Removes from "./removes.js"
 import * as Updates from "./updates.js"
-import PrismaClientContext from "../prisma.js"
 
 function initUserRepository(prismaClient: PrismaClient): Types.UserRepository {
   return {
     create: Creates.create(prismaClient),
+    findallById: Finds.findallById(prismaClient),
     findById: Finds.findById(prismaClient,),
     findByUsername: Finds.findByusername(prismaClient),
     findMany: Finds.findMany(prismaClient),
@@ -17,7 +18,6 @@ function initUserRepository(prismaClient: PrismaClient): Types.UserRepository {
     remove: Removes.remove(prismaClient),
     update: Updates.update(prismaClient),
     updatePartial: Updates.updatePartial(prismaClient),
-    findallById: Finds.findallById(prismaClient)
   }
 }
 
