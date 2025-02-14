@@ -1,16 +1,16 @@
 import type { UserService } from "../../types/services/user.js"
+import { Effect } from "effect"
 import * as S from "effect/Schema"
 import { Hono } from "hono"
 import { describeRoute } from "hono-openapi"
 import { resolver, validator } from "hono-openapi/effect"
 import { getCookie } from "hono/cookie"
-import jwt from "jsonwebtoken"
+import { ServicesRuntime } from "../../runtime/indext.js"
 import { Branded, Helpers, UserSchema } from "../../schema/index.js"
-import "dotenv/config"
 import { UserServiceContext } from "../../services/user/index.js"
-import { Effect } from "effect"
-import {ServicesRuntime} from "../../runtime/indext.js"
-
+import "dotenv/config"
+import { JwtServiceContext } from "../../services/jwt/indext.js"
+import * as Errors from "../../types/error/user-errors.js"
 
 const getManyResponseSchema = S.Array(UserSchema.Schema.omit("deletedAt"))
 
@@ -80,7 +80,6 @@ const getByUsernameDocs = describeRoute({
   tags: ["User"],
 })
 
-// eslint-disable-next-line node/prefer-global/process
 const SECRET_KEY = process.env.SECRET_KEY || "default-secret-key"
 
 const getProfileDocs = describeRoute({
@@ -112,7 +111,7 @@ const validateUserRequest = validator("param", S.Struct({
 }))
 
 const validateusernameUserRequest = validator("param", S.Struct({
-  username: UserSchema.UsernameSchema,
+  username: Branded.UsernameType,
 }))
 
 export function setupUserGetRoutes() {
@@ -152,7 +151,7 @@ export function setupUserGetRoutes() {
       Effect.tap(() => Effect.log("test")),
       Effect.catchTags({
         FindUserByIdError: () => Effect.succeed(c.json({ message: "find by Id error" }, 500)),
-        NoSuchElementException: () => Effect.succeed(c.json({message: `not found user for id: ${userId}`}, 404)), 
+        NoSuchElementException: () => Effect.succeed(c.json({ message: `not found user for id: ${userId}` }, 404)),
         ParseError: () => Effect.succeed(c.json({ message: "parse error" }, 500)),
       }),
       Effect.annotateLogs({ key: "annotate" }),
@@ -175,7 +174,7 @@ export function setupUserGetRoutes() {
       Effect.tap(() => Effect.log("test")),
       Effect.catchTags({
         FindUserByIdError: () => Effect.succeed(c.json({ message: "find by Id error" }, 500)),
-        NoSuchElementException: () => Effect.succeed(c.json({message: `not found user for id: ${userId}`}, 404)), 
+        NoSuchElementException: () => Effect.succeed(c.json({ message: `not found user for id: ${userId}` }, 404)),
         ParseError: () => Effect.succeed(c.json({ message: "parse error" }, 500)),
       }),
       Effect.annotateLogs({ key: "annotate" }),
@@ -185,7 +184,6 @@ export function setupUserGetRoutes() {
     const result = await ServicesRuntime.runPromise(program)
     return result
   })
-
 
   app.get("/username/:username", getByUsernameDocs, validateusernameUserRequest, async (c) => {
     const { username } = c.req.valid("param")
@@ -199,7 +197,7 @@ export function setupUserGetRoutes() {
       Effect.tap(() => Effect.log("test")),
       Effect.catchTags({
         FindUserByUsernameError: () => Effect.succeed(c.json({ message: "find by Username error" }, 500)),
-        NoSuchElementException: () => Effect.succeed(c.json({message: `not found user for Username: ${username}`}, 404)), 
+        NoSuchElementException: () => Effect.succeed(c.json({ message: `not found user for Username: ${username}` }, 404)),
         ParseError: () => Effect.succeed(c.json({ message: "parse error" }, 500)),
       }),
       Effect.annotateLogs({ key: "annotate" }),
@@ -210,27 +208,28 @@ export function setupUserGetRoutes() {
     return result
   })
 
-  // app.get("/profile/profile", getProfileDocs, async (c) => {
-  //   const token = getCookie(c, "session")
-  //   if (!token) {
-  //     return c.json({ message: "Unauthorized: No session found" }, 401)
-  //   }
+  app.get("/profile/profile", getProfileDocs, async (c) => {
+    const token = getCookie(c, "session")
 
-  //   try {
-  //     const payload = jwt.verify(token, SECRET_KEY) as { username: string }
+    const program = Effect.succeed(token).pipe(
+        Effect.andThen(token => 
+            token 
+                ? Effect.succeed(token) 
+                : Effect.fail(Errors.VerifyTokenError.new("Unauthorized")())
+        ),
+        Effect.andThen(token => JwtServiceContext.pipe(
+            Effect.andThen(svc => svc.VerifyToken(token))
+        )),
+        Effect.andThen(decoded => c.json({ message: "Profile data", decoded })),
+        Effect.catchTags({
+            VerifyTokenError: () => Effect.succeed(c.json({ message: "Not found user" }, 401))
+        })
+    )
 
-  //     const user = await userService.findByUsername(payload.username)
-  //     if (!user) {
-  //       return c.json({ message: "User not found" }, 404)
-  //     }
+    return await ServicesRuntime.runPromise(program)
+})
 
-  //     return c.json(Helpers.fromObjectToSchema(UserSchema.Schema.omit("deletedAt"))(user))
-  //   }
-  //   // eslint-disable-next-line unused-imports/no-unused-vars
-  //   catch (error) {
-  //     return c.json({ message: "Invalid or expired session" }, 401)
-  //   }
-  // })
+
 
   return app
 }
