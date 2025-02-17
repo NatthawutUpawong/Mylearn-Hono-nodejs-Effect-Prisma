@@ -13,3 +13,5 @@ export const UserIdFromString = S.transform(
   },
 )
 
+export const UsernameType = S.String.pipe(S.brand("UsernameType")).annotations({jsonSchema: {type: "string"}})
+export type UsernameType = S.Schema.Type<typeof UsernameType>

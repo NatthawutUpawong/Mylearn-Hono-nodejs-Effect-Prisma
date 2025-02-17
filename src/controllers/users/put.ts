@@ -5,7 +5,7 @@ import { describeRoute } from "hono-openapi"
 import { resolver, validator } from "hono-openapi/effect"
 import { ServicesRuntime } from "../../runtime/indext.js"
 import { Branded, Helpers, UserSchema } from "../../schema/index.js"
-import { PasswordServiceContext } from "../../services/password/hashpassword.js"
+import { PasswordServiceContext } from "../../services/password/indext.js"
 import { UserServiceContext } from "../../services/user/index.js"
 import * as Errors from "../../types/error/user-errors.js"
 

@@ -10,6 +10,30 @@ export class HashedPasswordError extends Data.TaggedError("HashedPasswordError")
   static new = (msg?: string) => (error?: unknown) => new HashedPasswordError({ error, msg })
 }
 
+export class VerifyPasswordError extends Data.TaggedError("VerifyPasswordError")<ErrorMsg> {
+  static new = (msg?: string) => (error?: unknown) => new VerifyPasswordError({ error, msg })
+}
+
+export class InvalidPasswordError extends Data.TaggedError("InvalidPasswordError")<ErrorMsg> {
+  static new = (msg?: string) => (error?: unknown) => new InvalidPasswordError({ error, msg })
+}
+
+// export class isPassword8CharLongError extends Data.TaggedError("isPassword8CharLongError")<ErrorMsg> {
+//   static new = createErrorFactory(this)
+// }
+
+export class isPasswordContainsSpecialCharError extends Data.TaggedError("isPasswordContainsSpecialCharError")<ErrorMsg> {
+  static new = createErrorFactory(this)
+}
+
+export class SignTokenError extends Data.TaggedError("SignTokenError")<ErrorMsg> {
+  static new = createErrorFactory(this)
+}
+
+export class VerifyTokenError extends Data.TaggedError("VerifyTokenError")<ErrorMsg> {
+  static new = createErrorFactory(this)
+}
+
 export class FindUserByIdError extends Data.TaggedError("FindUserByIdError")<ErrorMsg> {
   static new = createErrorFactory(this)
 }

@@ -1,4 +1,3 @@
-import type { UserService } from "../../types/services/user.js"
 import { Effect } from "effect"
 import * as S from "effect/Schema"
 import { Hono } from "hono"
@@ -7,10 +6,10 @@ import { resolver, validator } from "hono-openapi/effect"
 import { getCookie } from "hono/cookie"
 import { ServicesRuntime } from "../../runtime/indext.js"
 import { Branded, Helpers, UserSchema } from "../../schema/index.js"
-import { UserServiceContext } from "../../services/user/index.js"
-import "dotenv/config"
 import { JwtServiceContext } from "../../services/jwt/indext.js"
+import { UserServiceContext } from "../../services/user/index.js"
 import * as Errors from "../../types/error/user-errors.js"
+import "dotenv/config"
 
 const getManyResponseSchema = S.Array(UserSchema.Schema.omit("deletedAt"))
 
@@ -80,7 +79,7 @@ const getByUsernameDocs = describeRoute({
   tags: ["User"],
 })
 
-const SECRET_KEY = process.env.SECRET_KEY || "default-secret-key"
+// const SECRET_KEY = process.env.SECRET_KEY || "default-secret-key"
 
 const getProfileDocs = describeRoute({
   responses: {
@@ -212,24 +211,22 @@ export function setupUserGetRoutes() {
     const token = getCookie(c, "session")
 
     const program = Effect.succeed(token).pipe(
-        Effect.andThen(token => 
-            token 
-                ? Effect.succeed(token) 
-                : Effect.fail(Errors.VerifyTokenError.new("Unauthorized")())
-        ),
-        Effect.andThen(token => JwtServiceContext.pipe(
-            Effect.andThen(svc => svc.VerifyToken(token))
-        )),
-        Effect.andThen(decoded => c.json({ message: "Profile data", decoded })),
-        Effect.catchTags({
-            VerifyTokenError: () => Effect.succeed(c.json({ message: "Not found user" }, 401))
-        })
+      Effect.andThen(token =>
+        token
+          ? Effect.succeed(token)
+          : Effect.fail(Errors.VerifyTokenError.new("Unauthorized")()),
+      ),
+      Effect.andThen(token => JwtServiceContext.pipe(
+        Effect.andThen(svc => svc.VerifyToken(token)),
+      )),
+      Effect.andThen(decoded => c.json({ decoded, message: "Profile data" })),
+      Effect.catchTags({
+        VerifyTokenError: () => Effect.succeed(c.json({ message: "Not found user" }, 401)),
+      }),
     )
 
     return await ServicesRuntime.runPromise(program)
-})
-
-
+  })
 
   return app
 }

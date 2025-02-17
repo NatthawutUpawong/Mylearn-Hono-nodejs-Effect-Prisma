@@ -17,7 +17,7 @@ export type UserRepository = {
   updatePartial: (id: Branded.UserId, data: Partial<UserSchema.UpdateUserEncoded>) => Effect.Effect<User, Errors.UpdateUserErro>
   remove: (id: Branded.UserId) => Effect.Effect<User, Errors.RemoveUserError>
   hardRemove: (id: Branded.UserId) => Effect.Effect<User, Errors.RemoveUserError>
-  findByUsername: (username: string) => Effect.Effect<User, Errors.FindUserByUsernameError | ParseError | NoSuchElementException>
+  findByUsername: (username: Branded.UsernameType) => Effect.Effect<User, Errors.FindUserByUsernameError | ParseError | NoSuchElementException>
   // login: (username:string, password: string) => Effect.Effect<User | { token: string }, Errors.LoginUserError | NoSuchElementException>
 
 }

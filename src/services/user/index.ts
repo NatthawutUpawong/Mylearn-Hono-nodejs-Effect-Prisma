@@ -42,11 +42,11 @@ export class UserServiceContext extends Context.Tag("service/User")<UserServiceC
           update: (id, data) => repo.update(id, data).pipe(
             Effect.withSpan("update.user.service"),
           ),
-          login: (username, password) => repo.findByUsername(username).pipe(
-              Effect.flatMap((user) => user
-                ?passwordSerci)
+          // login: (username, password) => repo.findByUsername(username).pipe(
+          //     Effect.flatMap((user) => user
+          //       ?passwordSerci)
             // Effect.withSpan("login.user.service")
-          )
+          // )
 
         } satisfies UserService
       }),

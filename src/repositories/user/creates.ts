@@ -12,7 +12,7 @@ export function create(prismaClient: PrismaClient): UserRepository["create"] {
     }),
     
   }).pipe(
-    Effect.andThen(Helpers.fromObjectToSchemaEffect(UserSchema.Schema)),
+    Effect.andThen(Helpers.fromObjectToSchema(UserSchema.Schema)),
     Effect.withSpan("create.user.repositoty")
   )
  
