@@ -135,7 +135,7 @@ export function setupUserPostRoutes() {
       Effect.andThen(token => c.json({ message: "Login success", token })),
       Effect.catchTags({
         FindUserByUsernameError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
-        NoSuchElementException: () => Effect.succeed(c.json({ message: "Invalided Username or Password " }, 500)),
+        NoSuchElementException: () => Effect.succeed(c.json({ message: "Invalided Username or Password" }, 500)),
         ParseError: () => Effect.succeed(c.json({message: "Paser data error"}, 500)),
         VerifyPasswordError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
       }),

@@ -62,6 +62,9 @@ export function setupUserPutRoutes() {
         Effect.bind("newUsername", ({ existingUser }) =>
           Effect.succeed(body.username.trim() === "" ? existingUser.username : body.username)),
 
+        Effect.tap(({ passwordService }) => passwordService.isPassword8CharLongEffect(body.password)),
+        Effect.tap(({ passwordService }) => passwordService.isPasswordContainsSpecialCharEffect(body.password)),
+
         Effect.bind("hashedPassword", ({ existingUser, passwordService }) =>
           body.password.trim() === ""
             ? Effect.succeed(existingUser.password)
@@ -78,6 +81,8 @@ export function setupUserPutRoutes() {
           ),
         ),
 
+        Effect.andThen(b => b),
+
         Effect.tap(({ existingUser, userServices }) =>
           body.id !== existingUser.id
             ? userServices.findallById(body.id).pipe(
@@ -88,17 +93,22 @@ export function setupUserPutRoutes() {
               )
             : Effect.void,
         ),
-        Effect.flatMap(({ hashedPassword, newUsername, userServices }) =>
+        Effect.andThen(({ hashedPassword, newUsername, userServices }) =>
           userServices.update(userId, { ...body, password: hashedPassword, username: newUsername }),
         ),
+
+        Effect.andThen(b => b),
 
         Effect.andThen(parseResponse),
         Effect.andThen(data => c.json(data, 200)),
 
         Effect.catchTags({
-          FindUserByIdError: () => Effect.succeed(c.json({ message: `Not found Id: ${userId}` }, 404)),
-          IdAlreadyExitError: () => Effect.succeed(c.json({ message: `Id: ${body.id} can not be used` }, 500)),
-          UsernameAlreadyExitError: () => Effect.succeed(c.json({ message: `Username: ${body.username} already exists` }, 500)),
+          FindUserByIdError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
+          IdAlreadyExitError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
+          InvalidPasswordError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
+          ParseError: () => Effect.succeed(c.json({ messgae: "Parse error " }, 500)),
+          UsernameAlreadyExitError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
+
         }),
 
         Effect.withSpan("PUT /.user.controller"),
