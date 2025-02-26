@@ -27,7 +27,7 @@ const updateUserDocs = describeRoute({
           schema: resolver(updateEmployeeResponseSchema),
         },
       },
-      description: "Udate User Error",
+      description: "Update User Error",
     },
   },
   tags: ["User"],
@@ -108,7 +108,7 @@ export function setupUserPutRoutes() {
           InvalidPasswordError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
           ParseError: () => Effect.succeed(c.json({ messgae: "Parse error " }, 500)),
           UsernameAlreadyExitError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
-
+          
         }),
 
         Effect.withSpan("PUT /.user.controller"),

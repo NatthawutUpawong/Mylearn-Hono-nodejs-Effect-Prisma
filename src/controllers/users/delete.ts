@@ -18,7 +18,17 @@ const deleteUserDocs = describeRoute({
           schema: resolver(deleteUserResponseSchema),
         },
       },
-      description: "Get user by userId",
+      description: "Delete User By UserId",
+    },
+    500: {
+      content: {
+        "application/json": {
+          schema: resolver(S.Struct({
+            message: S.String,
+          })),
+        },
+      },
+      description: "Delete User Error",
     },
   },
   tags: ["User"],
