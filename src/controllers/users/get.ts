@@ -158,7 +158,6 @@ export function setupUserGetRoutes() {
       Effect.andThen(svc => svc.findOneById(userId)),
       Effect.andThen(parseResponse),
       Effect.andThen(data => c.json(data, 200)),
-      Effect.tap(() => Effect.log("test")),
       Effect.catchTags({
         FindUserByIdError: () => Effect.succeed(c.json({ message: "find by Id error" }, 500)),
         NoSuchElementException: () => Effect.succeed(c.json({ message: `not found user for id: ${userId}` }, 404)),

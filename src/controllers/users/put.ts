@@ -62,14 +62,25 @@ export function setupUserPutRoutes() {
         Effect.bind("newUsername", ({ existingUser }) =>
           Effect.succeed(body.username.trim() === "" ? existingUser.username : body.username)),
 
-        Effect.tap(({ passwordService }) => passwordService.isPassword8CharLongEffect(body.password)),
-        Effect.tap(({ passwordService }) => passwordService.isPasswordContainsSpecialCharEffect(body.password)),
-
         Effect.bind("hashedPassword", ({ existingUser, passwordService }) =>
           body.password.trim() === ""
             ? Effect.succeed(existingUser.password)
-            : passwordService.hashedPassword(body.password)),
+            : passwordService.hashedPassword(body.password
 
+        )),
+
+        Effect.tap(({ passwordService }) =>
+          body.password && body.password.trim() !== ""
+            ? passwordService.isPassword8CharLongEffect(body.password)
+            : Effect.void
+        ),
+        
+        Effect.tap(({ passwordService }) =>
+          body.password && body.password.trim() !== ""
+            ? passwordService.isPasswordContainsSpecialCharEffect(body.password)
+            : Effect.void
+        ),
+        
         Effect.tap(({ newUsername, userServices }) =>
           userServices.findByUsername(newUsername).pipe(
             Effect.andThen(user =>
@@ -108,7 +119,7 @@ export function setupUserPutRoutes() {
           InvalidPasswordError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
           ParseError: () => Effect.succeed(c.json({ messgae: "Parse error " }, 500)),
           UsernameAlreadyExitError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
-          
+
         }),
 
         Effect.withSpan("PUT /.user.controller"),

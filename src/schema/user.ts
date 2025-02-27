@@ -3,14 +3,14 @@ import * as S from "effect/Schema"
 import * as Branded from "./branded.js"
 import * as GeneralSchema from "./general.js"
 
-export const Role = S.Literal("User", "User_ORG", "User_Admin") 
+export const Role = S.Literal("User", "User_ORG", "User_Admin")
 
 export const Schema = S.Struct({
   id: Branded.UserId,
   username: Branded.UsernameType,
   password: S.String,
-  rele: Role,
-  organizationId: Branded.OrganizationId, 
+  role: Role,
+  organizationId: Branded.OrganizationId,
   ...GeneralSchema.TimeStampSchema.fields,
   _tag: S.Literal("User").pipe(S.optional, S.withDefaults({
     constructor: () => "User" as const,
@@ -25,7 +25,7 @@ export const SchemaArray = S.Array(Schema)
 export type UserArray = S.Schema.Type<typeof SchemaArray>
 export type UserArrayEncoded = S.Schema.Encoded<typeof SchemaArray>
 
-export const CreateSchema = Schema.pick("username", "password")
+export const CreateSchema = Schema.pick("username", "password", "organizationId")
 export type CreateUser = S.Schema.Type<typeof CreateSchema>
 export type CreateUserEncoded = S.Schema.Encoded<typeof CreateSchema>
 
@@ -36,5 +36,3 @@ export type UpdateUserEncoded = S.Schema.Encoded<typeof UpdateSchema>
 export const LoginSchema = Schema.pick("username", "password")
 export type LoginUser = S.Schema.Type<typeof LoginSchema>
 export type LoginUserEncoded = S.Schema.Encoded<typeof LoginSchema>
-
-

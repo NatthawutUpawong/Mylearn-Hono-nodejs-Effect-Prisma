@@ -18,8 +18,8 @@ model user {
   deletedAt         DateTime?
 
   organization      organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-
   projectRelarion projectRelation[]
+  
 }
 
 model project {

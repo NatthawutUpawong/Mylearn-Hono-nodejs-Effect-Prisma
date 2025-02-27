@@ -114,7 +114,6 @@ export function setupUserPostRoutes() {
       Effect.catchTags({
         InvalidPasswordError: e => Effect.succeed(c.json({ message: e.msg }, 400)),
         UsernameAlreadyExitError: e => Effect.succeed(c.json({ message: e.msg }, 409)),
-
       }),
       Effect.withSpan("POST /.user.controller"),
     )
