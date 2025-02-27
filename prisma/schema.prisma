@@ -8,11 +8,61 @@ datasource db {
 }
 
 model user {
-  id         Int        @id @default(autoincrement())
-  username   String     @unique @db.VarChar(60)
-  password   String
+  id                Int        @id @default(autoincrement())
+  username          String     @unique @db.VarChar(60)
+  password          String
+  role              Role       @default(User)
+  organizationId    Int?  
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  deletedAt         DateTime?
+
+  organization      organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  projectRelarion projectRelation[]
+  
+}
+
+model project {
+  id      Int       @id @default(autoincrement())
+  name    String
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
   deletedAt  DateTime?
 
+  projectRelarion projectRelation[]
 }
+
+model organization {
+  id                Int       @id @default(autoincrement())
+  name              String
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  deletedAt         DateTime?
+
+  users             user[]
+  projectRelarion   projectRelation[]
+}
+
+model projectRelation {
+  id                Int       @id @default(autoincrement())
+  userId            Int
+  projectId         Int
+  organizationId    Int
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  deletedAt         DateTime?
+
+  user             user         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project          project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  organization     organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  User
+  User_ORG
+  User_Admin
+}
+
+
+
+

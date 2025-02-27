@@ -27,7 +27,7 @@ const updateUserDocs = describeRoute({
           schema: resolver(updateEmployeeResponseSchema),
         },
       },
-      description: "Udate User Error",
+      description: "Update User Error",
     },
   },
   tags: ["User"],
@@ -62,14 +62,25 @@ export function setupUserPutRoutes() {
         Effect.bind("newUsername", ({ existingUser }) =>
           Effect.succeed(body.username.trim() === "" ? existingUser.username : body.username)),
 
-        Effect.tap(({ passwordService }) => passwordService.isPassword8CharLongEffect(body.password)),
-        Effect.tap(({ passwordService }) => passwordService.isPasswordContainsSpecialCharEffect(body.password)),
-
         Effect.bind("hashedPassword", ({ existingUser, passwordService }) =>
           body.password.trim() === ""
             ? Effect.succeed(existingUser.password)
-            : passwordService.hashedPassword(body.password)),
+            : passwordService.hashedPassword(body.password
 
+        )),
+
+        Effect.tap(({ passwordService }) =>
+          body.password && body.password.trim() !== ""
+            ? passwordService.isPassword8CharLongEffect(body.password)
+            : Effect.void
+        ),
+        
+        Effect.tap(({ passwordService }) =>
+          body.password && body.password.trim() !== ""
+            ? passwordService.isPasswordContainsSpecialCharEffect(body.password)
+            : Effect.void
+        ),
+        
         Effect.tap(({ newUsername, userServices }) =>
           userServices.findByUsername(newUsername).pipe(
             Effect.andThen(user =>

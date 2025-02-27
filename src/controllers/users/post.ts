@@ -1,4 +1,5 @@
 import { Effect } from "effect"
+import * as S from "effect/Schema"
 import { Hono } from "hono"
 import * as honoOpenapi from "hono-openapi"
 import { resolver, validator } from "hono-openapi/effect"
@@ -22,6 +23,16 @@ const postDocs = honoOpenapi.describeRoute({
       },
       description: "Create User",
     },
+    500: {
+      content: {
+        "application/json": {
+          schema: resolver(S.Struct({
+            message: S.String,
+          })),
+        },
+      },
+      description: "Created User Error",
+    },
   },
   tags: ["User"],
 })
@@ -37,6 +48,16 @@ const loginDocs = honoOpenapi.describeRoute({
         },
       },
       description: "Login User",
+    },
+    500: {
+      content: {
+        "application/json": {
+          schema: resolver(S.Struct({
+            message: S.String,
+          })),
+        },
+      },
+      description: "Login Error",
     },
   },
   tags: ["User"],
@@ -93,7 +114,6 @@ export function setupUserPostRoutes() {
       Effect.catchTags({
         InvalidPasswordError: e => Effect.succeed(c.json({ message: e.msg }, 400)),
         UsernameAlreadyExitError: e => Effect.succeed(c.json({ message: e.msg }, 409)),
-
       }),
       Effect.withSpan("POST /.user.controller"),
     )
@@ -119,11 +139,15 @@ export function setupUserPostRoutes() {
 
       Effect.andThen(({ jwtServices, user, validPassword }) =>
         validPassword
-          ? jwtServices.SignToken(user).pipe(
+          ? jwtServices.SignToken({
+              id: user.id,
+              tag: user._tag,
+              username: user.username,
+            }).pipe(
               Effect.tap(token =>
                 setCookie(c, "session", token, {
                   httpOnly: true,
-                  maxAge: 60 * 60 * 24, // 1 วัน
+                  maxAge: 60 * 5,
                   sameSite: "Strict",
                   secure: true,
                 }),
@@ -136,7 +160,7 @@ export function setupUserPostRoutes() {
       Effect.catchTags({
         FindUserByUsernameError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
         NoSuchElementException: () => Effect.succeed(c.json({ message: "Invalided Username or Password" }, 500)),
-        ParseError: () => Effect.succeed(c.json({message: "Paser data error"}, 500)),
+        ParseError: () => Effect.succeed(c.json({ message: "Paser data error" }, 500)),
         VerifyPasswordError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
       }),
       Effect.withSpan("POST /.user.controller"),

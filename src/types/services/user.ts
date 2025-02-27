@@ -13,8 +13,5 @@ export type UserService = {
   findByUsername: (username: Branded.UsernameType) => Effect.Effect<UserSchema.User, Errors.FindUserByUsernameError | ParseError | NoSuchElementException>
   update: (id: Branded.UserId, data: UserSchema.UpdateUser) => Effect.Effect<UserSchema.User, Errors.UpdateUserErro | ParseError>
   removeById: (id: Branded.UserId) => Effect.Effect<UserSchema.User, Errors.RemoveUserError>
-  // login: (username:string, password: UserSchema.Password) => Effect.Effect<UserSchema.User | { token: string }, Errors.LoginUserError>
-  // getUserFromSession: (token: string) => Effect.Effect<UserSchema.User, Errors.GetProfileUserError | ParseError>
-  
 }
 

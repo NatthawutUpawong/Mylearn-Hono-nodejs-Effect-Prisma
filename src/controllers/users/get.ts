@@ -23,7 +23,18 @@ const getManyDocs = describeRoute({
       },
       description: "Get User",
     },
+    500: {
+      content: {
+        "application/json": {
+          schema: resolver(S.Struct({
+            message: S.String,
+          })),
+        },
+      },
+      description: "Get Many Users Error",
+    },
   },
+
   tags: ["User"],
 })
 
@@ -47,7 +58,7 @@ const getByIdDocs = describeRoute({
           })),
         },
       },
-      description: "Get user by Id",
+      description: "Get User By Id Not Found",
     },
   },
   tags: ["User"],
@@ -73,7 +84,7 @@ const getByUsernameDocs = describeRoute({
           })),
         },
       },
-      description: "Get user by Username",
+      description: "Get User By Username Not Found",
     },
   },
   tags: ["User"],
@@ -147,7 +158,6 @@ export function setupUserGetRoutes() {
       Effect.andThen(svc => svc.findOneById(userId)),
       Effect.andThen(parseResponse),
       Effect.andThen(data => c.json(data, 200)),
-      Effect.tap(() => Effect.log("test")),
       Effect.catchTags({
         FindUserByIdError: () => Effect.succeed(c.json({ message: "find by Id error" }, 500)),
         NoSuchElementException: () => Effect.succeed(c.json({ message: `not found user for id: ${userId}` }, 404)),
@@ -172,7 +182,7 @@ export function setupUserGetRoutes() {
       Effect.andThen(data => c.json(data, 200)),
       Effect.tap(() => Effect.log("test")),
       Effect.catchTags({
-        FindUserByIdError: () => Effect.succeed(c.json({ message: "find by Id error" }, 500)),
+        FindUserByIdError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
         NoSuchElementException: () => Effect.succeed(c.json({ message: `not found user for id: ${userId}` }, 404)),
         ParseError: () => Effect.succeed(c.json({ message: "parse error" }, 500)),
       }),

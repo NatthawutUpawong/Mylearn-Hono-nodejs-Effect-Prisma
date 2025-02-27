@@ -4,11 +4,11 @@ import { Hono } from "hono"
 import { describeRoute } from "hono-openapi"
 import { resolver, validator } from "hono-openapi/effect"
 import { ServicesRuntime } from "../../runtime/indext.js"
-import { Branded, Helpers, UserSchema } from "../../schema/index.js"
-import { UserServiceContext } from "../../services/user/index.js"
-import * as Errors from "../../types/error/user-errors.js"
+import { Branded, Helpers, OrganizationSchema } from "../../schema/index.js"
+import { OrganizationServiceContext } from "../../services/organization/index.js"
+import * as Errors from "../../types/error/ORG-errors.js"
 
-const deleteUserResponseSchema = UserSchema.Schema.omit("deletedAt")
+const deleteUserResponseSchema = OrganizationSchema.Schema.omit("deletedAt")
 
 const deleteUserDocs = describeRoute({
   responses: {
@@ -18,7 +18,7 @@ const deleteUserDocs = describeRoute({
           schema: resolver(deleteUserResponseSchema),
         },
       },
-      description: "Delete User By UserId",
+      description: "Delete Organization By UserId",
     },
     500: {
       content: {
@@ -28,38 +28,38 @@ const deleteUserDocs = describeRoute({
           })),
         },
       },
-      description: "Delete User Error",
+      description: "Delete Organization Error",
     },
   },
-  tags: ["User"],
+  tags: ["Organization"],
 })
 
 const validateDeleteUserRequest = validator("param", S.Struct({
-  userId: Branded.UserIdFromString,
+  ORGId: Branded.OrganizationIdFromString,
 }))
 
 export function setupDeleteRoutes() {
   const app = new Hono()
 
-  app.delete("/:userId", deleteUserDocs, validateDeleteUserRequest, async (c) => {
-    const { userId } = c.req.valid("param")
+  app.delete("/:ORGId", deleteUserDocs, validateDeleteUserRequest, async (c) => {
+    const { ORGId } = c.req.valid("param")
 
     const parseResponse = Helpers.fromObjectToSchemaEffect(deleteUserResponseSchema)
 
-    const program = UserServiceContext.pipe(
+    const program = OrganizationServiceContext.pipe(
 
-      Effect.bind("deletedUser", UserServiceContext =>
-        UserServiceContext.findOneById(userId).pipe(
+      Effect.bind("deletedORG", OrganizationServiceContext =>
+        OrganizationServiceContext.findById(ORGId).pipe(
           Effect.catchTag("NoSuchElementException", () =>
-            Effect.fail(Errors.FindUserByIdError.new(`Not found user Id: ${userId}`)())),
+            Effect.fail(Errors.findORGByIdError.new(`Not found user Id: ${ORGId}`)())),
         )),
-      Effect.andThen(b => b),
-      Effect.andThen(svc => svc.removeById(userId)),
+
+      Effect.andThen(svc => svc.remove(ORGId)),
       Effect.andThen(parseResponse),
-      Effect.andThen(data => c.json(data, 200)),
+      Effect.andThen(data => c.json(data, 201)),
       Effect.catchTags({
-        FindUserByIdError: () => Effect.succeed(c.json({ message: `Not found user Id: ${userId}` }, 404)),
-        RemoveUserError: () => Effect.succeed(c.json({ message: "remove error" }, 500)),
+        findORGByIdError: () => Effect.succeed(c.json({ message: `Not found Id: ${ORGId}` }, 404)),
+        removeORGError: () => Effect.succeed(c.json({ message: "remove error" }, 500)),
       }),
       Effect.withSpan("DELETE /:employeeId.employee.controller"),
     )
