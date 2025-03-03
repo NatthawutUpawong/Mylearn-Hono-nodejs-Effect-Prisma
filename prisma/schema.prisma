@@ -18,7 +18,7 @@ model user {
   deletedAt         DateTime?
 
   organization      organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  projectRelarion projectRelation[]
+  projectRelation projectRelation[]
   
 }
 
@@ -29,7 +29,7 @@ model project {
   updatedAt  DateTime   @updatedAt
   deletedAt  DateTime?
 
-  projectRelarion projectRelation[]
+  projectRelation projectRelation[]
 }
 
 model organization {
@@ -40,7 +40,7 @@ model organization {
   deletedAt         DateTime?
 
   users             user[]
-  projectRelarion   projectRelation[]
+  projectRelation   projectRelation[]
 }
 
 model projectRelation {

@@ -4,7 +4,7 @@ import * as Branded from "./branded.js"
 import * as GeneralSchema from "./general.js"
 
 export const Schema = S.Struct({
-    id: Branded.ProjectRelarionId,
+    id: Branded.ProjectRelationId,
     userId: Branded.UserId,
     projectId: Branded.ProjectId,
     organizationId: Branded.OrganizationId,

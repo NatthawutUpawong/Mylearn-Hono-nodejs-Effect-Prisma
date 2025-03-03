@@ -36,14 +36,14 @@ export const ProjectIdFromString = S.transform(
   },
 )
 
-export const ProjectRelarionId = S.Number.pipe(S.brand("ProjectRelarionId")).annotations({ jsonSchema: { type: "number" } })
-export type ProjectRelarionId = S.Schema.Type<typeof ProjectRelarionId>
+export const ProjectRelationId = S.Number.pipe(S.brand("ProjectRelationId")).annotations({ jsonSchema: { type: "number" } })
+export type ProjectRelationId = S.Schema.Type<typeof ProjectRelationId>
 
-export const ProjectRelarionIdFromString = S.transform(
+export const ProjectRelationIdFromString = S.transform(
   S.NumberFromString,
-  ProjectRelarionId,
+  ProjectRelationId,
   {
-    decode: id => ProjectRelarionId.make(id),
+    decode: id => ProjectRelationId.make(id),
     encode: id => id,
   },
 )

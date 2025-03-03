@@ -8,10 +8,10 @@ import type * as Errors from "../error/project-errors.js"
 type Project = ProjectSchema.Project
 
 export type ProjectRepository = {
-  create: (data: ProjectSchema.CreateProjectEncoded) => Effect.Effect<Project, Errors.createProjectError | ParseError>
+  create: (data: ProjectSchema.CreateProjectEncoded) => Effect.Effect<ProjectSchema.CreateProject, Errors.createProjectError | ParseError>
   findById: (id: Branded.ProjectId) => Effect.Effect<Project, Errors.findProjectByIdError | ParseError | NoSuchElementException>
-  findByIdWithRelations: (id: Branded.ProjectId) => Effect.Effect<ProjectWithRelationsSchema.ProjectWithRelations, Errors.findProjectByIdError | ParseError | NoSuchElementException>
-  findMany: () => Effect.Effect<Project, Errors.findManyProjectError>
+  findByIdWithRelation: (id: Branded.ProjectId) => Effect.Effect<ProjectWithRelationsSchema.ProjectWithRelations, Errors.findProjectByIdError | ParseError | NoSuchElementException>
+  findMany: () => Effect.Effect<ProjectSchema.ProjectArray, Errors.findManyProjectError>
   findManyWithRelations: () => Effect.Effect<ProjectWithRelationsSchema.ProjectWithRelationsArray, Errors.findManyProjectError>
   update: (id: Branded.ProjectId, data: ProjectSchema.UpdateProjectEncoded) => Effect.Effect<Project, Errors.updateProjectError | ParseError>
   updatePartial: (id: Branded.OrganizationId, data: Partial<ProjectSchema.UpdateProjectEncoded>) => Effect.Effect<Project, Errors.updateProjectError>

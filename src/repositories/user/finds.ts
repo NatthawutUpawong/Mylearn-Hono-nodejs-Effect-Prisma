@@ -13,7 +13,6 @@ export function findMany(prismaClient: PrismaClient): UserRepository["findMany"]
       },
     }),
   }).pipe(
-    Effect.tap(b => console.log(b)),
     Effect.andThen(Helpers.fromObjectToSchema(UserSchema.SchemaArray)),
     Effect.withSpan("find-many.user.repository"),
   )
