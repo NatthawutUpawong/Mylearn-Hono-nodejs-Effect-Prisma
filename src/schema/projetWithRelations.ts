@@ -1,9 +1,9 @@
 import * as S from "effect/Schema"
-import { ProjectRelarionSchema, ProjectSchema } from "./index.js"
+import { ProjectRelaionSchema, ProjectSchema } from "./index.js"
 
 export const Schema = S.Struct({
   ...ProjectSchema.Schema.fields,
-  projectRelarion: ProjectRelarionSchema.Schema,
+  projectRelation: S.Array(ProjectRelaionSchema.Schema.omit("deletedAt")),
 })
 
 export type ProjectWithRelations = S.Schema.Type<typeof Schema>

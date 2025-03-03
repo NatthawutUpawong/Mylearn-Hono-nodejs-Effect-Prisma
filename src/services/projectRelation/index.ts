@@ -1,0 +1,35 @@
+import type { ProjectRelationService } from "../../types/services/projectRelation.js"
+import { Context, Effect, Layer } from "effect"
+import { ProjectRelationRepositoryContext } from "../../repositories/projectRelation/index.js"
+
+export class ProjectRelationServiceContext extends Context.Tag("service/ProjectRelation")<ProjectRelationRepositoryContext, ProjectRelationService>() {
+  static Live = Layer.effect(
+    this,
+    Effect.all({
+      repo: ProjectRelationRepositoryContext,
+    }).pipe(
+      Effect.andThen(({ repo }) => {
+        return {
+          create: data => repo.create(data).pipe(
+            Effect.withSpan("create.Projectrelation.service"),
+          ),
+        } satisfies ProjectRelationService
+      }),
+    ),
+  )
+
+  // static Test = Layer.succeed(this, EmployeeServiceContext.of({
+  //   create: (data: EmployeeSchema.CreateEmployeeEncoded) => Effect.succeed(EmployeeSchema.Schema.make({
+  //     ...data,
+  //     _tag: "Employee",
+  //     createdAt: new Date("2024-12-30"),
+  //     deletedAt: null,
+  //     id: Branded.EmployeeId.make(1),
+  //     updatedAt: new Date("2024-12-30"),
+  //   })),
+  //   findMany: () => Effect.succeed([]),
+  //   findOneById: () => Effect.fail(Errors.FindEmployeeByIdError.new()()),
+  //   removeById: () => Effect.fail(Errors.RemoveEmployeeError.new()()),
+  //   update: () => Effect.fail(Errors.UpdateEmployeeError.new()()),
+  // }))
+}

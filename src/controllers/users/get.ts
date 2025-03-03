@@ -9,7 +9,8 @@ import { Branded, Helpers, UserSchema } from "../../schema/index.js"
 import { JwtServiceContext } from "../../services/jwt/indext.js"
 import { UserServiceContext } from "../../services/user/index.js"
 import * as Errors from "../../types/error/user-errors.js"
-import "dotenv/config"
+import { authMiddleware } from "../../middleware/auth.js"
+
 
 const getManyResponseSchema = S.Array(UserSchema.Schema.omit("deletedAt"))
 
@@ -90,8 +91,6 @@ const getByUsernameDocs = describeRoute({
   tags: ["User"],
 })
 
-// const SECRET_KEY = process.env.SECRET_KEY || "default-secret-key"
-
 const getProfileDocs = describeRoute({
   responses: {
     200: {
@@ -127,7 +126,7 @@ const validateusernameUserRequest = validator("param", S.Struct({
 export function setupUserGetRoutes() {
   const app = new Hono()
 
-  app.get("/", getManyDocs, async (c) => {
+  app.get("/", authMiddleware, getManyDocs, async (c) => {
     const parseResponse = Helpers.fromObjectToSchemaEffect(getManyResponseSchema)
 
     const program = UserServiceContext.pipe(
@@ -229,6 +228,7 @@ export function setupUserGetRoutes() {
       Effect.andThen(token => JwtServiceContext.pipe(
         Effect.andThen(svc => svc.VerifyToken(token)),
       )),
+      Effect.andThen(b => b),
       Effect.andThen(decoded => c.json({ decoded, message: "Profile data" })),
       Effect.catchTags({
         VerifyTokenError: () => Effect.succeed(c.json({ message: "Not found user" }, 401)),

@@ -2,8 +2,8 @@ import type { ProjectRepository } from "../repositories/project.js"
 
 export type ProjectService = {
   create: ProjectRepository["create"]
-  findById: ProjectRepository["findByIdWithRelations"]
+  findById: ProjectRepository["findByIdWithRelation"]
   findMany: ProjectRepository["findManyWithRelations"]
   update: ProjectRepository["update"]
-  remove: ProjectRepository["remove"]
+  remove: ProjectRepository["hardRemove"]
 }

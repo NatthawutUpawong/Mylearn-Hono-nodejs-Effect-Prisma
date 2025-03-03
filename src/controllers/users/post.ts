@@ -1,3 +1,4 @@
+/* eslint-disable perfectionist/sort-objects */
 import { Effect } from "effect"
 import * as S from "effect/Schema"
 import { Hono } from "hono"
@@ -112,6 +113,7 @@ export function setupUserPostRoutes() {
       Effect.andThen(parseResponse),
       Effect.andThen(data => c.json(data, 201)),
       Effect.catchTags({
+        CreateUserError: () => Effect.succeed(c.json({ message: "create error" }, 500)),
         InvalidPasswordError: e => Effect.succeed(c.json({ message: e.msg }, 400)),
         UsernameAlreadyExitError: e => Effect.succeed(c.json({ message: e.msg }, 409)),
       }),
@@ -141,8 +143,9 @@ export function setupUserPostRoutes() {
         validPassword
           ? jwtServices.SignToken({
               id: user.id,
-              tag: user._tag,
               username: user.username,
+              role: user.role,
+              organizatonId: user.organizationId,
             }).pipe(
               Effect.tap(token =>
                 setCookie(c, "session", token, {
