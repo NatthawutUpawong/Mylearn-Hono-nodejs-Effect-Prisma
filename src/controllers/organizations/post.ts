@@ -1,13 +1,16 @@
 /* eslint-disable unused-imports/no-unused-imports */
+import type { UserSchema } from "../../schema/index.js"
 import { Effect } from "effect"
 import * as S from "effect/Schema"
 import { Hono } from "hono"
 import * as honoOpenapi from "hono-openapi"
 import { resolver, validator } from "hono-openapi/effect"
+import { authMiddleware } from "../../middleware/auth.js"
 import { ServicesRuntime } from "../../runtime/indext.js"
 import { Helpers, OrganizationSchema } from "../../schema/index.js"
 import { OrganizationServiceContext } from "../../services/organization/index.js"
-import * as Errors from "../../types/error/ORG-errors.js"
+import * as ORGErrors from "../../types/error/ORG-errors.js"
+import * as UserErrors from "../../types/error/user-errors.js"
 
 const responseSchema = OrganizationSchema.Schema.omit("deletedAt")
 
@@ -40,14 +43,22 @@ const validateRequestBody = validator("json", OrganizationSchema.CreateSchema)
 export function setupORGPostRoutes() {
   const app = new Hono()
 
-  app.post("/", postDocs, validateRequestBody, async (c) => {
+  app.post("/", authMiddleware, postDocs, validateRequestBody, async (c) => {
     const body = c.req.valid("json")
+    const getUserPayload: UserSchema.UserPayload = c.get("userPayload")
 
     const parseResponse = Helpers.fromObjectToSchemaEffect(responseSchema)
 
     const programs = Effect.all({
       ORGService: OrganizationServiceContext,
     }).pipe(
+
+      Effect.tap(() =>
+        getUserPayload.role === "User_Admin"
+          ? Effect.void
+          : Effect.fail(UserErrors.PermissionDeniedError.new("You do not have permission to access")()),
+      ),
+
       Effect.tap(() => Effect.log("create organization starting")),
       Effect.andThen(b => b),
       Effect.andThen(({ ORGService }) => ORGService.create(body),
@@ -57,8 +68,9 @@ export function setupORGPostRoutes() {
       Effect.andThen(parseResponse),
       Effect.andThen(data => c.json(data, 201)),
       Effect.catchTags({
-
         createORGError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
+        ParseError: () => Effect.succeed(c.json({ message: "parse error" }, 500)),
+        PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
 
       }),
       Effect.withSpan("POST /.organization.controller"),

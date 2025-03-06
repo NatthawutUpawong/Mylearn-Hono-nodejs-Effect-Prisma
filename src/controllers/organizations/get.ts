@@ -1,11 +1,14 @@
+import type { UserSchema } from "../../schema/index.js"
 import { Effect } from "effect"
 import * as S from "effect/Schema"
 import { Hono } from "hono"
 import { describeRoute } from "hono-openapi"
 import { resolver, validator } from "hono-openapi/effect"
+import { authMiddleware } from "../../middleware/auth.js"
 import { ServicesRuntime } from "../../runtime/indext.js"
 import { Branded, Helpers, ORGWithRelarionSchema } from "../../schema/index.js"
 import { OrganizationServiceContext } from "../../services/organization/index.js"
+import * as UserErrors from "../../types/error/user-errors.js"
 // import * as Errors from "../../types/error/ORG-errors.js"
 
 export function setupORGGetRoutes() {
@@ -38,10 +41,16 @@ export function setupORGGetRoutes() {
     tags: ["Organization"],
   })
 
-  app.get("/", getManyDocs, async (c) => {
+  app.get("/", authMiddleware, getManyDocs, async (c) => {
+    const getUserPayload: UserSchema.UserPayload = c.get("userPayload")
     const parseResponse = Helpers.fromObjectToSchemaEffect(getManyResponseSchema)
 
     const program = OrganizationServiceContext.pipe(
+      Effect.tap(() =>
+        getUserPayload.role === "User_Admin"
+          ? Effect.void
+          : Effect.fail(UserErrors.PermissionDeniedError.new("You do not have permission to access")()),
+      ),
       Effect.tap(() => Effect.log("start finding many Organization")),
       Effect.andThen(svc => svc.findMany()),
       Effect.andThen(parseResponse),
@@ -50,6 +59,7 @@ export function setupORGGetRoutes() {
       Effect.catchTags({
         findManyORGError: () => Effect.succeed(c.json({ message: "find many error" }, 500)),
         ParseError: () => Effect.succeed(c.json({ message: "parse error" }, 500)),
+        PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
       }),
       Effect.annotateLogs({ key: "annotate" }),
       Effect.withLogSpan("test"),
@@ -90,11 +100,18 @@ export function setupORGGetRoutes() {
     ORGId: Branded.OrganizationIdFromString,
   }))
 
-  app.get("/:ORGId", getByIdDocs, validateORGRequest, async (c) => {
+  app.get("/:ORGId", authMiddleware, getByIdDocs, validateORGRequest, async (c) => {
     const { ORGId } = c.req.valid("param")
+    const getUserPayload: UserSchema.UserPayload = c.get("userPayload")
     const parseResponse = Helpers.fromObjectToSchemaEffect(getByIdResponseSchema)
 
     const program = OrganizationServiceContext.pipe(
+      Effect.tap(() =>
+        getUserPayload.role === "User_Admin"
+          ? Effect.void
+          : Effect.fail(UserErrors.PermissionDeniedError.new("You do not have permission to access")()),
+      ),
+
       Effect.tap(() => Effect.log("start finding by Id Organization")),
       Effect.andThen(svc => svc.findById(ORGId)),
       Effect.andThen(parseResponse),
@@ -104,6 +121,7 @@ export function setupORGGetRoutes() {
         findORGByIdError: () => Effect.succeed(c.json({ message: "find by Id Error" }, 500)),
         NoSuchElementException: () => Effect.succeed(c.json({ message: `not found Id: ${ORGId}` }, 404)),
         ParseError: () => Effect.succeed(c.json({ message: "parse error" }, 500)),
+        PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
       }),
       Effect.annotateLogs({ key: "annotate" }),
       Effect.withLogSpan("test"),

@@ -3,14 +3,11 @@ import * as S from "effect/Schema"
 import { Hono } from "hono"
 import { describeRoute } from "hono-openapi"
 import { resolver, validator } from "hono-openapi/effect"
-import { getCookie } from "hono/cookie"
+import { authMiddleware } from "../../middleware/auth.js"
 import { ServicesRuntime } from "../../runtime/indext.js"
 import { Branded, Helpers, UserSchema } from "../../schema/index.js"
-import { JwtServiceContext } from "../../services/jwt/indext.js"
 import { UserServiceContext } from "../../services/user/index.js"
 import * as Errors from "../../types/error/user-errors.js"
-import { authMiddleware } from "../../middleware/auth.js"
-
 
 const getManyResponseSchema = S.Array(UserSchema.Schema.omit("deletedAt"))
 
@@ -127,10 +124,18 @@ export function setupUserGetRoutes() {
   const app = new Hono()
 
   app.get("/", authMiddleware, getManyDocs, async (c) => {
+    const getUserPayload: UserSchema.UserPayload = c.get("userPayload")
+
     const parseResponse = Helpers.fromObjectToSchemaEffect(getManyResponseSchema)
 
     const program = UserServiceContext.pipe(
+      Effect.tap(() =>
+        getUserPayload.role === "User_Admin"
+          ? Effect.void
+          : Effect.fail(Errors.PermissionDeniedError.new("You do not have permission to access")()),
+      ),
       Effect.tap(() => Effect.log("start finding many users")),
+
       Effect.andThen(svc => svc.findMany()),
       Effect.andThen(parseResponse),
       Effect.andThen(data => c.json(data, 200)),
@@ -138,6 +143,7 @@ export function setupUserGetRoutes() {
       Effect.catchTags({
         FindManyUserError: () => Effect.succeed(c.json({ message: "find many error" }, 500)),
         ParseError: () => Effect.succeed(c.json({ message: "parse error" }, 500)),
+        PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
       }),
       Effect.annotateLogs({ key: "annotate" }),
       Effect.withLogSpan("test"),
@@ -148,11 +154,17 @@ export function setupUserGetRoutes() {
     return result
   })
 
-  app.get("/:userId", getByIdDocs, validateUserRequest, async (c) => {
+  app.get("/:userId", authMiddleware, getByIdDocs, validateUserRequest, async (c) => {
+    const getUserPayload: UserSchema.UserPayload = c.get("userPayload")
     const { userId } = c.req.valid("param")
     const parseResponse = Helpers.fromObjectToSchemaEffect(getByIdResponseSchema)
 
     const program = UserServiceContext.pipe(
+      Effect.tap(() =>
+        getUserPayload.role === "User_Admin"
+          ? Effect.void
+          : Effect.fail(Errors.PermissionDeniedError.new("You do not have permission to access")()),
+      ),
       Effect.tap(() => Effect.log("start finding by Id users")),
       Effect.andThen(svc => svc.findOneById(userId)),
       Effect.andThen(parseResponse),
@@ -161,6 +173,7 @@ export function setupUserGetRoutes() {
         FindUserByIdError: () => Effect.succeed(c.json({ message: "find by Id error" }, 500)),
         NoSuchElementException: () => Effect.succeed(c.json({ message: `not found user for id: ${userId}` }, 404)),
         ParseError: () => Effect.succeed(c.json({ message: "parse error" }, 500)),
+        PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
       }),
       Effect.annotateLogs({ key: "annotate" }),
       Effect.withLogSpan("test"),
@@ -170,34 +183,41 @@ export function setupUserGetRoutes() {
     return result
   })
 
-  app.get("all/:userId", getByIdDocs, validateUserRequest, async (c) => {
-    const { userId } = c.req.valid("param")
-    const parseResponse = Helpers.fromObjectToSchemaEffect(getByIdResponseSchema)
+  // app.get("all/:userId", getByIdDocs, validateUserRequest, async (c) => {
+  //   const { userId } = c.req.valid("param")
+  //   const parseResponse = Helpers.fromObjectToSchemaEffect(getByIdResponseSchema)
 
-    const program = UserServiceContext.pipe(
-      Effect.tap(() => Effect.log("start finding by Id users")),
-      Effect.andThen(svc => svc.findallById(userId)),
-      Effect.andThen(parseResponse),
-      Effect.andThen(data => c.json(data, 200)),
-      Effect.tap(() => Effect.log("test")),
-      Effect.catchTags({
-        FindUserByIdError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
-        NoSuchElementException: () => Effect.succeed(c.json({ message: `not found user for id: ${userId}` }, 404)),
-        ParseError: () => Effect.succeed(c.json({ message: "parse error" }, 500)),
-      }),
-      Effect.annotateLogs({ key: "annotate" }),
-      Effect.withLogSpan("test"),
-      Effect.withSpan("GET /userId.user.controller /"),
-    )
-    const result = await ServicesRuntime.runPromise(program)
-    return result
-  })
+  //   const program = UserServiceContext.pipe(
+  //     Effect.tap(() => Effect.log("start finding by Id users")),
+  //     Effect.andThen(svc => svc.findallById(userId)),
+  //     Effect.andThen(parseResponse),
+  //     Effect.andThen(data => c.json(data, 200)),
+  //     Effect.tap(() => Effect.log("test")),
+  //     Effect.catchTags({
+  //       FindUserByIdError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
+  //       NoSuchElementException: () => Effect.succeed(c.json({ message: `not found user for id: ${userId}` }, 404)),
+  //       ParseError: () => Effect.succeed(c.json({ message: "parse error" }, 500)),
+  //     }),
+  //     Effect.annotateLogs({ key: "annotate" }),
+  //     Effect.withLogSpan("test"),
+  //     Effect.withSpan("GET /userId.user.controller /"),
+  //   )
+  //   const result = await ServicesRuntime.runPromise(program)
+  //   return result
+  // })
 
-  app.get("/username/:username", getByUsernameDocs, validateusernameUserRequest, async (c) => {
+  app.get("/username/:username", authMiddleware, getByUsernameDocs, validateusernameUserRequest, async (c) => {
     const { username } = c.req.valid("param")
+    const getUserPayload: UserSchema.UserPayload = c.get("userPayload")
+
     const parseResponse = Helpers.fromObjectToSchemaEffect(getByUsernameResponseSchema)
 
     const program = UserServiceContext.pipe(
+      Effect.tap(() =>
+        getUserPayload.role === "User_Admin"
+          ? Effect.void
+          : Effect.fail(Errors.PermissionDeniedError.new("You do not have permission to access")()),
+      ),
       Effect.tap(() => Effect.log("start finding by Username users")),
       Effect.andThen(svc => svc.findByUsername(username)),
       Effect.andThen(parseResponse),
@@ -207,6 +227,7 @@ export function setupUserGetRoutes() {
         FindUserByUsernameError: () => Effect.succeed(c.json({ message: "find by Username error" }, 500)),
         NoSuchElementException: () => Effect.succeed(c.json({ message: `not found user for Username: ${username}` }, 404)),
         ParseError: () => Effect.succeed(c.json({ message: "parse error" }, 500)),
+        PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
       }),
       Effect.annotateLogs({ key: "annotate" }),
       Effect.withLogSpan("test"),
@@ -216,23 +237,12 @@ export function setupUserGetRoutes() {
     return result
   })
 
-  app.get("/profile/profile", getProfileDocs, async (c) => {
-    const token = getCookie(c, "session")
+  app.get("/profile/profile", authMiddleware, getProfileDocs, async (c) => {
+    const getUserPayload: UserSchema.UserPayload = c.get("userPayload")
 
-    const program = Effect.succeed(token).pipe(
-      Effect.andThen(token =>
-        token
-          ? Effect.succeed(token)
-          : Effect.fail(Errors.VerifyTokenError.new("Unauthorized")()),
-      ),
-      Effect.andThen(token => JwtServiceContext.pipe(
-        Effect.andThen(svc => svc.VerifyToken(token)),
-      )),
-      Effect.andThen(b => b),
-      Effect.andThen(decoded => c.json({ decoded, message: "Profile data" })),
-      Effect.catchTags({
-        VerifyTokenError: () => Effect.succeed(c.json({ message: "Not found user" }, 401)),
-      }),
+    const program = Effect.succeed(getUserPayload).pipe(
+
+      Effect.andThen(getUserPayload => c.json({ getUserPayload, message: "Profile data" })),
     )
 
     return await ServicesRuntime.runPromise(program)

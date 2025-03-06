@@ -8,9 +8,11 @@ import { deleteCookie, setCookie } from "hono/cookie"
 import { ServicesRuntime } from "../../runtime/indext.js"
 import { Helpers, UserSchema } from "../../schema/index.js"
 import { JwtServiceContext } from "../../services/jwt/indext.js"
+import { OrganizationServiceContext } from "../../services/organization/index.js"
 import { PasswordServiceContext } from "../../services/password/indext.js"
 import { UserServiceContext } from "../../services/user/index.js"
-import * as Errors from "../../types/error/user-errors.js"
+import * as ORGErrors from "../../types/error/ORG-errors.js"
+import * as UserErrors from "../../types/error/user-errors.js"
 
 const responseSchema = UserSchema.Schema.omit("deletedAt")
 
@@ -90,11 +92,18 @@ export function setupUserPostRoutes() {
     const programs = Effect.all({
       passwordService: PasswordServiceContext,
       userServices: UserServiceContext,
+      ORGService: OrganizationServiceContext,
     }).pipe(
       Effect.tap(() => Effect.log("Signup starting")),
+
+      Effect.tap(({ ORGService }) => ORGService.findById(body.organizationId).pipe(
+        Effect.catchTag("NoSuchElementException", () =>
+          Effect.fail(ORGErrors.findORGByIdError.new(`ORG Id: ${body.organizationId} not found`)())),
+
+      )),
       Effect.tap(({ userServices }) => userServices.findByUsername(body.username).pipe(
         Effect.andThen(() =>
-          Effect.fail(Errors.UsernameAlreadyExitError.new(`Username: ${body.username} already exists`)()),
+          Effect.fail(UserErrors.UsernameAlreadyExitError.new(`Username: ${body.username} already exists`)()),
         ),
         Effect.catchTag("NoSuchElementException", () => Effect.void),
 
@@ -116,6 +125,7 @@ export function setupUserPostRoutes() {
         CreateUserError: () => Effect.succeed(c.json({ message: "create error" }, 500)),
         InvalidPasswordError: e => Effect.succeed(c.json({ message: e.msg }, 400)),
         UsernameAlreadyExitError: e => Effect.succeed(c.json({ message: e.msg }, 409)),
+        findORGByIdError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
       }),
       Effect.withSpan("POST /.user.controller"),
     )
@@ -145,7 +155,7 @@ export function setupUserPostRoutes() {
               id: user.id,
               username: user.username,
               role: user.role,
-              organizatonId: user.organizationId,
+              organizationId: user.organizationId,
             }).pipe(
               Effect.tap(token =>
                 setCookie(c, "session", token, {
@@ -156,7 +166,7 @@ export function setupUserPostRoutes() {
                 }),
               ),
             )
-          : Effect.fail(Errors.VerifyPasswordError.new("Invalided Username or Password ")()),
+          : Effect.fail(UserErrors.VerifyPasswordError.new("Invalided Username or Password ")()),
       ),
 
       Effect.andThen(token => c.json({ message: "Login success", token })),

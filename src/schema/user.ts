@@ -36,3 +36,7 @@ export type UpdateUserEncoded = S.Schema.Encoded<typeof UpdateSchema>
 export const LoginSchema = Schema.pick("username", "password")
 export type LoginUser = S.Schema.Type<typeof LoginSchema>
 export type LoginUserEncoded = S.Schema.Encoded<typeof LoginSchema>
+
+export const UserPayloadSchema = Schema.pick("id", "username", "role", "organizationId")
+export type UserPayload = S.Schema.Type<typeof UserPayloadSchema>
+export type UserPayloadEncode = S.Schema.Encoded<typeof UserPayloadSchema>
