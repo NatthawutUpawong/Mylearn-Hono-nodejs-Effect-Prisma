@@ -5,15 +5,30 @@ import { Helpers, ProjectSchema, ProjectWithRelationsSchema } from "../../schema
 import * as Errors from "../../types/error/project-errors.js"
 
 export function findMany(prismaClient: PrismaClient): ProjectRepository["findMany"] {
-  return () => Effect.tryPromise({
+  return whereCondition => Effect.tryPromise({
     catch: Errors.findManyProjectError.new(),
-    try: () => prismaClient.project.findMany({
-      where: {
-        deletedAt: null,
+    try: () => prismaClient.projectRelation.findMany({
+      include: {
+        project: {
+          include: {
+            projectRelation: {
+              where: {
+                deletedAt: null,
+              },
+            },
+          },
+        },
       },
+      where: {
+        ...whereCondition,
+        // deletedAt: null,
+        // organizationId: 2,
+      },
+
     }),
   }).pipe(
-    // Effect.tap(b => console.log("from repo",b)),
+    Effect.map(results => results.map(rel => rel.project)),
+    // Effect.tap(b => console.log("from repo", b)),
     Effect.andThen(Helpers.fromObjectToSchema(ProjectSchema.SchemaArray)),
     Effect.withSpan("find-many.project.repository"),
   )
@@ -58,7 +73,7 @@ export function findById(prismaClient: PrismaClient): ProjectRepository["findByI
 }
 
 export function findByIdWithRelation(prismaClient: PrismaClient): ProjectRepository["findByIdWithRelation"] {
-  return (id) => Effect.tryPromise({
+  return id => Effect.tryPromise({
     catch: Errors.findProjectByIdError.new(),
     try: () => prismaClient.project.findUnique({
       include: {

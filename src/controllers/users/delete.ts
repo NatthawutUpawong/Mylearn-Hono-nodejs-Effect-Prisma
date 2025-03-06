@@ -3,6 +3,7 @@ import * as S from "effect/Schema"
 import { Hono } from "hono"
 import { describeRoute } from "hono-openapi"
 import { resolver, validator } from "hono-openapi/effect"
+import { authMiddleware } from "../../middleware/auth.js"
 import { ServicesRuntime } from "../../runtime/indext.js"
 import { Branded, Helpers, UserSchema } from "../../schema/index.js"
 import { UserServiceContext } from "../../services/user/index.js"
@@ -41,13 +42,19 @@ const validateDeleteUserRequest = validator("param", S.Struct({
 export function setupDeleteRoutes() {
   const app = new Hono()
 
-  app.delete("/:userId", deleteUserDocs, validateDeleteUserRequest, async (c) => {
+  app.delete("/:userId", authMiddleware, deleteUserDocs, validateDeleteUserRequest, async (c) => {
     const { userId } = c.req.valid("param")
+
+    const getUserPayload: UserSchema.UserPayload = c.get("userPayload")
 
     const parseResponse = Helpers.fromObjectToSchemaEffect(deleteUserResponseSchema)
 
     const program = UserServiceContext.pipe(
-
+      Effect.tap(() =>
+        getUserPayload.role === "User_Admin"
+          ? Effect.void
+          : Effect.fail(Errors.PermissionDeniedError.new("You do not have permission to access")()),
+      ),
       Effect.bind("deletedUser", UserServiceContext =>
         UserServiceContext.findOneById(userId).pipe(
           Effect.catchTag("NoSuchElementException", () =>
@@ -58,7 +65,8 @@ export function setupDeleteRoutes() {
       Effect.andThen(parseResponse),
       Effect.andThen(data => c.json(data, 200)),
       Effect.catchTags({
-        FindUserByIdError: () => Effect.succeed(c.json({ message: `Not found user Id: ${userId}` }, 404)),
+        FindUserByIdError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
+        PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
         RemoveUserError: () => Effect.succeed(c.json({ message: "remove error" }, 500)),
       }),
       Effect.withSpan("DELETE /:employeeId.employee.controller"),

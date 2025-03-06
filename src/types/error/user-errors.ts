@@ -73,3 +73,9 @@ export class UsernameAlreadyExitError extends Data.TaggedError("UsernameAlreadyE
 export class IdAlreadyExitError extends Data.TaggedError("IdAlreadyExitError")<ErrorMsg> {
   static new = createErrorFactory(this)
 }
+
+export class PermissionDeniedError extends Data.TaggedError("PermissionDeniedError")<ErrorMsg> {
+  static new = createErrorFactory(this)
+}
+
+

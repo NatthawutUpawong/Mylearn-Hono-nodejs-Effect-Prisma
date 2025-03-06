@@ -8,7 +8,7 @@ export type ProjectRelationService = {
   // create: (data: ProjectRelaronSchema.CreateProjectRelationEncoded) => Effect.Effect<ProjectRelationsWithRelationsSchema.ProjectWithRelations, Errors.createProjectRelationtError | ParseError>
   create: ProjectRelationRepository["create"]
   // findById: ProjectRelationRepository["findById"]
-  // findMany: ProjectRelationRepository["findMany"]
+  findMany: ProjectRelationRepository["findMany"]
   // update: ProjectRelationRepository["update"]
   // remove: ProjectRelationRepository["remove"]
 }

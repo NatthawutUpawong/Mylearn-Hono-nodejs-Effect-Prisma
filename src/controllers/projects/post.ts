@@ -1,4 +1,3 @@
-/* eslint-disable perfectionist/sort-objects */
 /* eslint-disable perfectionist/sort-imports */
 /* eslint-disable unused-imports/no-unused-imports */
 import { Effect } from "effect"
@@ -6,14 +5,12 @@ import * as S from "effect/Schema"
 import { Hono } from "hono"
 import * as honoOpenapi from "hono-openapi"
 import { resolver, validator } from "hono-openapi/effect"
-import { getCookie } from "hono/cookie"
 import { ServicesRuntime } from "../../runtime/indext.js"
-import { Helpers, ProjectRelaionSchema, ProjectRelationsWithRelationsSchema, ProjectSchema } from "../../schema/index.js"
+import type { UserSchema } from "../../schema/index.js"
+import { Helpers, ProjectRelationsWithRelationsSchema, ProjectSchema, ProjectRelaionSchema } from "../../schema/index.js"
+import { authMiddleware } from "../../middleware/auth.js"
 import { ProjectServiceContext } from "../../services/project/index.js"
 import { ProjectRelationServiceContext } from "../../services/projectRelation/index.js"
-import { JwtServiceContext } from "../../services/jwt/indext.js"
-import * as ORGErrors from "../../types/error/ORG-errors.js"
-import * as UserErrors from "../../types/error/user-errors.js"
 
 const responseSchema = ProjectRelationsWithRelationsSchema.Schema.omit("deletedAt")
 
@@ -43,61 +40,46 @@ const postDocs = honoOpenapi.describeRoute({
 
 const validateRequestBody = validator("json", ProjectSchema.CreateSchema)
 
-export function setupORGPostRoutes() {
+export function setupProjectPostRoutes() {
   const app = new Hono()
 
-  app.post("/", postDocs, validateRequestBody, async (c) => {
+  app.post("/", postDocs, authMiddleware, validateRequestBody, async (c) => {
+    const getUserPayload: UserSchema.UserPayload = c.get("userPayload")
+
     const body = c.req.valid("json")
 
     const parseResponse = Helpers.fromObjectToSchemaEffect(responseSchema)
 
-    const token = getCookie(c, "session")
-    const program = Effect.succeed(token).pipe(
-      Effect.andThen(token =>
-        token
-          ? Effect.succeed(token)
-          : Effect.fail(UserErrors.VerifyTokenError.new("Unauthorized")()),
-      ),
-      Effect.andThen(b => b),
-      Effect.andThen(token => JwtServiceContext.pipe(
-        Effect.andThen(svc => svc.VerifyToken(token)),
+    const program = Effect.all({
+      ProjectRelationService: ProjectRelationServiceContext,
+      ProjectService: ProjectServiceContext,
+
+    }).pipe(
+      Effect.bind("createProjectInfo", ({ProjectService}) => ProjectService.create(body).pipe(
       )),
 
-      Effect.andThen(decoded => decoded as { id: number, username: string, role: string, organizatonId: number }),
-      Effect.andThen(b => b),
-
-      Effect.bind("projectInfo", () => ProjectServiceContext.pipe(
-        Effect.andThen(svc => svc.create(body)),
-        Effect.map(projectInfo => projectInfo as { id: number, name: string }),
-      )),
-
-      Effect.andThen(body => ProjectRelationServiceContext.pipe(
-        Effect.andThen(svc => svc.create({
-          userId: body.id,
-          organizationId: body.organizatonId,
-          projectId: body.projectInfo.id,
-        })),
-      )),
-      Effect.andThen(b => b),
+      Effect.andThen(({ProjectRelationService, createProjectInfo},) => 
+          ProjectRelationService.create({
+          organizationId: getUserPayload.organizationId,
+          projectId: createProjectInfo.id,
+          userId: getUserPayload.id,
+          })),
 
       Effect.andThen(parseResponse),
 
       Effect.andThen(data => c.json(data, 201)),
 
-      Effect.andThen(b => b),
-
       Effect.catchTags({
-        VerifyTokenError: () => Effect.succeed(c.json({ message: "Unauthorized" }, 401)),
         createProjectError: () => Effect.succeed(c.json({ message: "create project error" }, 500)),
         createProjectRelationtError: () => Effect.succeed(c.json({ message: "create projectRelation error" }, 500)),
         ParseError: () => Effect.succeed(c.json({ message: "Parse Error" }, 500)),
       }),
       Effect.withSpan("POST /.project.controller"),
-
     )
 
     const result = await ServicesRuntime.runPromise(program)
     return result
   })
+
   return app
 }

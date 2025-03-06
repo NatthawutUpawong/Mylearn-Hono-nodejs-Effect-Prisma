@@ -13,6 +13,9 @@ export class ProjectRelationServiceContext extends Context.Tag("service/ProjectR
           create: data => repo.create(data).pipe(
             Effect.withSpan("create.Projectrelation.service"),
           ),
+          findMany: () => repo.findMany().pipe(
+            Effect.withSpan("findmany.Projectrelation.service"),
+          ),
         } satisfies ProjectRelationService
       }),
     ),

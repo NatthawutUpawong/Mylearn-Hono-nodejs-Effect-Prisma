@@ -1,5 +1,4 @@
 import type { Effect } from "effect"
-
 import type { NoSuchElementException } from "effect/Cause"
 import type { ParseError } from "effect/ParseResult"
 import type { Branded, UserSchema } from "../../schema/index.js"

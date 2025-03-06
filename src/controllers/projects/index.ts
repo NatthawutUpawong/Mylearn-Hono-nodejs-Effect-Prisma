@@ -8,7 +8,7 @@ export function setupProjectRoutes() {
   const app = new Hono()
 
   app.route("/", GetRoutes.setupProjectGetRoutes())
-  app.route("/", PostRoutes.setupORGPostRoutes())
+  app.route("/", PostRoutes.setupProjectPostRoutes())
   app.route("/", PutRoutes.setupProjectPutRoutes())
   app.route("/", DeleteRoutes.setupDeleteRoutes())
 
