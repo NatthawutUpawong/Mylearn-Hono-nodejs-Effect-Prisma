@@ -18,6 +18,22 @@ export function findMany(prismaClient: PrismaClient): UserRepository["findMany"]
   )
 }
 
+export function findManyPagination(prismaClient: PrismaClient): UserRepository["findManyPagination"] {
+  return (limit: number, offset: number) => Effect.tryPromise({
+    catch: Errors.FindManyUserError.new(),
+    try: () => prismaClient.user.findMany({
+      skip: offset,
+      take: limit,
+      where: {
+        deletedAt: null,
+      },
+    }),
+  }).pipe(
+    Effect.andThen(Helpers.fromObjectToSchema(UserSchema.SchemaArray)),
+    Effect.withSpan("find-many.user.pagination.repository"),
+  )
+}
+
 export function findById(prismaClient: PrismaClient): UserRepository["findById"] {
   return id => Effect.tryPromise({
     catch: Errors.FindUserByIdError.new(),

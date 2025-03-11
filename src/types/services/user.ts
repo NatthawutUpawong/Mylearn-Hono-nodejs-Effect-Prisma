@@ -1,8 +1,7 @@
-
 import type { Effect } from "effect"
 import type { NoSuchElementException } from "effect/Cause"
 import type { ParseError } from "effect/ParseResult"
-import type { Branded, UserSchema } from "../../schema/index.js"
+import type { Branded, paginationSchema, UserSchema } from "../../schema/index.js"
 import type * as Errors from "../error/user-errors.js"
 
 export type UserService = {
@@ -13,5 +12,8 @@ export type UserService = {
   findByUsername: (username: Branded.UsernameType) => Effect.Effect<UserSchema.User, Errors.FindUserByUsernameError | ParseError | NoSuchElementException>
   update: (id: Branded.UserId, data: UserSchema.UpdateUser) => Effect.Effect<UserSchema.User, Errors.UpdateUserErro | ParseError>
   removeById: (id: Branded.UserId) => Effect.Effect<UserSchema.User, Errors.RemoveUserError>
+  findManyPagination: (limit: number, offset: number, page: number) => Effect.Effect<{
+    data: UserSchema.UserArray
+    pagination: paginationSchema.pagination
+  }, Errors.FindManyUserError>
 }
-

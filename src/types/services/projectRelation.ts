@@ -1,14 +1,17 @@
 import type { Effect } from "effect"
-import type { ParseError } from "effect/ParseResult"
-import type { ProjectRelaionSchema, ProjectRelationsWithRelationsSchema } from "../../schema/index.js"
+import type { paginationSchema, ProjectSchema } from "../../schema/index.js"
 import type * as Errors from "../error/projectRelation-errors.js"
 import type { ProjectRelationRepository } from "../repositories/projectRelation.js"
 
 export type ProjectRelationService = {
-  // create: (data: ProjectRelaronSchema.CreateProjectRelationEncoded) => Effect.Effect<ProjectRelationsWithRelationsSchema.ProjectWithRelations, Errors.createProjectRelationtError | ParseError>
   create: ProjectRelationRepository["create"]
-  // findById: ProjectRelationRepository["findById"]
+  findById: ProjectRelationRepository["findById"]
   findMany: ProjectRelationRepository["findMany"]
+  findManyPagination: (limit: number, offset: number, page: number, whereCondition: any) => Effect.Effect<{
+      data: ProjectSchema.ProjectArray
+      pagination: paginationSchema.pagination
+  }, Errors.findManyProjectRelationtError>
+  // findManyWithRelation: ProjectRelationRepository["findManyWithRelation"]
   // update: ProjectRelationRepository["update"]
   // remove: ProjectRelationRepository["remove"]
 }

@@ -38,6 +38,26 @@ export function findManyWithRelation(prismaClient: PrismaClient): OrganizationRe
     Effect.withSpan("find-many.organization.repository"),
   )
 }
+export function findManyPagination(prismaClient: PrismaClient): OrganizationRepository["findManyPagination"] {
+  return (limit: number, offset: number) => Effect.tryPromise({
+    catch: Errors.findManyORGError.new(),
+    try: () => prismaClient.organization.findMany({
+      include: {
+        users: {
+          where: { deletedAt: null },
+        },
+      },
+      skip: offset,
+      take: limit,
+      where: {
+        deletedAt: null,
+      },
+    }),
+  }).pipe(
+    Effect.andThen(Helpers.fromObjectToSchema(ORGWithRelarionSchema.SchemaArray)),
+    Effect.withSpan("find-many.organization.repository"),
+  )
+}
 
 export function findById(prismaClient: PrismaClient): OrganizationRepository["findById"] {
   return id => Effect.tryPromise({

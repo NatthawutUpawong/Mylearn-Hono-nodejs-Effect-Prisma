@@ -32,7 +32,7 @@ const deleteUserDocs = describeRoute({
       description: "Delete User Error",
     },
   },
-  tags: ["User"],
+  tags: ["Admin-User"],
 })
 
 const validateDeleteUserRequest = validator("param", S.Struct({
@@ -66,7 +66,7 @@ export function setupDeleteRoutes() {
       Effect.andThen(data => c.json(data, 200)),
       Effect.catchTags({
         FindUserByIdError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
-        PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
+        PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
         RemoveUserError: () => Effect.succeed(c.json({ message: "remove error" }, 500)),
       }),
       Effect.withSpan("DELETE /:employeeId.employee.controller"),

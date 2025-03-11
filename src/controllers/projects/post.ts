@@ -7,7 +7,7 @@ import * as honoOpenapi from "hono-openapi"
 import { resolver, validator } from "hono-openapi/effect"
 import { ServicesRuntime } from "../../runtime/indext.js"
 import type { UserSchema } from "../../schema/index.js"
-import { Helpers, ProjectRelationsWithRelationsSchema, ProjectSchema, ProjectRelaionSchema } from "../../schema/index.js"
+import { Helpers, ProjectRelaionSchema, ProjectRelationsWithRelationsSchema, ProjectSchema } from "../../schema/index.js"
 import { authMiddleware } from "../../middleware/auth.js"
 import { ProjectServiceContext } from "../../services/project/index.js"
 import { ProjectRelationServiceContext } from "../../services/projectRelation/index.js"
@@ -55,15 +55,15 @@ export function setupProjectPostRoutes() {
       ProjectService: ProjectServiceContext,
 
     }).pipe(
-      Effect.bind("createProjectInfo", ({ProjectService}) => ProjectService.create(body).pipe(
+      Effect.bind("createProjectInfo", ({ ProjectService }) => ProjectService.create(body).pipe(
       )),
 
-      Effect.andThen(({ProjectRelationService, createProjectInfo},) => 
-          ProjectRelationService.create({
+      Effect.andThen(({ createProjectInfo, ProjectRelationService }) =>
+        ProjectRelationService.create({
           organizationId: getUserPayload.organizationId,
           projectId: createProjectInfo.id,
           userId: getUserPayload.id,
-          })),
+        })),
 
       Effect.andThen(parseResponse),
 

@@ -34,7 +34,7 @@ const putDocss = honoOpenapi.describeRoute({
       description: "Udate Organization Error",
     },
   },
-  tags: ["Organization"],
+  tags: ["Admin-Organization"],
 })
 
 const validateRequestBody = validator("json", OrganizationSchema.UpdateSchema)
@@ -77,9 +77,9 @@ export function setupORGPutRoutes() {
       Effect.catchTags({
         findORGByIdError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
         ParseError: () => Effect.succeed(c.json({ message: "parse error" }, 500)),
-        PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
+        PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
       }),
-      Effect.withSpan("PUT /.link.controller"),
+      Effect.withSpan("PUT /ORG.controller"),
     )
 
     const result = await ServicesRuntime.runPromise(programs)

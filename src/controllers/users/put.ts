@@ -33,7 +33,7 @@ const updateUserDocs = describeRoute({
       description: "Update User Error",
     },
   },
-  tags: ["User"],
+  tags: ["Admin-User"],
 })
 
 const validateUpdateUserRequest = validator("json", UserSchema.UpdateSchema)
@@ -124,8 +124,6 @@ export function setupUserPutRoutes() {
           userServices.update(userId, { ...body, password: hashedPassword, username: newUsername }),
         ),
 
-        Effect.andThen(b => b),
-
         Effect.andThen(parseResponse),
         Effect.andThen(data => c.json(data, 200)),
 
@@ -135,12 +133,12 @@ export function setupUserPutRoutes() {
           IdAlreadyExitError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
           InvalidPasswordError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
           ParseError: () => Effect.succeed(c.json({ messgae: "Parse error " }, 500)),
-          PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
+          PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
           UsernameAlreadyExitError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
 
         }),
 
-        Effect.withSpan("PUT /.user.controller"),
+        Effect.withSpan("PUT /user.controller"),
       )
     const result = await ServicesRuntime.runPromise(programs)
     return result

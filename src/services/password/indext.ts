@@ -16,7 +16,7 @@ function isValidPassword(hashedPassword: string, password: string): Effect.Effec
   })
 }
 
-function isPassword8CharLong(password: string): boolean{
+function isPassword8CharLong(password: string): boolean {
   return password.length >= 8 && !password.includes(" ")
 }
 
@@ -25,12 +25,12 @@ const isPassword8CharLongEffect = flow(
   Match.type<boolean>().pipe(
     Match.when(false, () => Effect.fail(Errors.InvalidPasswordError.new("Password must have at least 8 characters")())),
     Match.when(true, () => Effect.succeed(true)),
-    Match.exhaustive
-  )
-)  
+    Match.exhaustive,
+  ),
+)
 
 function isPasswordContainsSpecialChar(password: string): boolean {
-  return  /[^a-z0-9]/i.test(password)
+  return /[^a-z0-9]/i.test(password)
 }
 
 const isPasswordContainsSpecialCharEffect = flow(
@@ -38,9 +38,9 @@ const isPasswordContainsSpecialCharEffect = flow(
   Match.type<boolean>().pipe(
     Match.when(false, () => Effect.fail(Errors.InvalidPasswordError.new("Password must have spaccial characters")())),
     Match.when(true, () => Effect.succeed(true)),
-    Match.exhaustive
-  )
-) 
+    Match.exhaustive,
+  ),
+)
 
 export class PasswordServiceContext extends Effect.Service<PasswordServiceContext>() ("service/Password", {
   effect: Effect.Do.pipe(
@@ -51,16 +51,16 @@ export class PasswordServiceContext extends Effect.Service<PasswordServiceContex
         ),
 
         isPassword8CharLongEffect: (password: string) => isPassword8CharLongEffect(password).pipe(
-          Effect.withSpan("verify.password-lengh.service")
+          Effect.withSpan("verify.password-lengh.service"),
         ),
 
         isPasswordContainsSpecialCharEffect: (password: string) => isPasswordContainsSpecialCharEffect(password).pipe(
-          Effect.withSpan("verify.password-lengh.service")
+          Effect.withSpan("verify.password-lengh.service"),
         ),
 
         isValidPassword: (hashedPassword: string, password: string) => isValidPassword(hashedPassword, password).pipe(
           Effect.withSpan("verify.password.service"),
-        )
+        ),
       }
     }),
   ),
