@@ -152,11 +152,11 @@ export function setupProjectPutRoutes() {
       Effect.tap(({ existingProject }) =>
         body.id === existingProject.id
           ? Effect.void
-          : Effect.fail(ProjectErrors.ProjectIdNotMatchError.new(`Id from param and body id not match`)()),
+          : Effect.fail(ProjectErrors.ProjectIdNotMatchError.new("Id from param and body id not match")()),
       ),
       Effect.andThen(({ newName, ProjectService }) => ProjectService.update(ProjectId, { ...body, name: newName })),
       Effect.andThen(parseResponse),
-      Effect.andThen(data => c.json(data, 201)),
+      Effect.andThen(data => c.json(data, 200)),
       Effect.catchTags({
         findProjectByIdError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
         ParseError: () => Effect.succeed(c.json({ messgae: "Parse error " }, 500)),
