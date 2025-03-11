@@ -4,7 +4,6 @@ import type { ParseError } from "effect/ParseResult"
 import type { Branded, UserSchema } from "../../schema/index.js"
 import type * as Errors from "../error/user-errors.js"
 
-
 type User = UserSchema.User
 
 export type UserRepository = {
@@ -17,4 +16,7 @@ export type UserRepository = {
   remove: (id: Branded.UserId) => Effect.Effect<User, Errors.RemoveUserError>
   hardRemove: (id: Branded.UserId) => Effect.Effect<User, Errors.RemoveUserError>
   findByUsername: (username: Branded.UsernameType) => Effect.Effect<User, Errors.FindUserByUsernameError | ParseError | NoSuchElementException>
+  count: () => Effect.Effect<number, Errors.FindManyUserError>
+  findManyPagination: (limit: number, offset: number,) => Effect.Effect<UserSchema.UserArray, Errors.FindManyUserError>
+
 }

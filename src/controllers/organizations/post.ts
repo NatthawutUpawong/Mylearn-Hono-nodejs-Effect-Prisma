@@ -35,7 +35,7 @@ const postDocs = honoOpenapi.describeRoute({
       description: "Created Organization Error",
     },
   },
-  tags: ["Organization"],
+  tags: ["Admin-Organization"],
 })
 
 const validateRequestBody = validator("json", OrganizationSchema.CreateSchema)
@@ -70,7 +70,7 @@ export function setupORGPostRoutes() {
       Effect.catchTags({
         createORGError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
         ParseError: () => Effect.succeed(c.json({ message: "parse error" }, 500)),
-        PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
+        PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
 
       }),
       Effect.withSpan("POST /.organization.controller"),

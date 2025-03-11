@@ -13,9 +13,40 @@ export class ProjectRelationServiceContext extends Context.Tag("service/ProjectR
           create: data => repo.create(data).pipe(
             Effect.withSpan("create.Projectrelation.service"),
           ),
-          findMany: () => repo.findMany().pipe(
+          findById: id => repo.findById(id).pipe(
+            Effect.withSpan("find-by-id.projectrelation.service"),
+          ),
+          findMany: (whereCondition) => repo.findMany(whereCondition).pipe(
             Effect.withSpan("findmany.Projectrelation.service"),
           ),
+          findManyPagination: (limit, offset, page, whereCondition) =>
+            repo.findManyPagination(limit, offset, whereCondition).pipe(
+              Effect.andThen(data =>
+                repo.count(whereCondition).pipe(
+                  Effect.andThen((totalItems) => {
+                    const totalPages = Math.ceil(totalItems / limit)
+                    const nextPage = page < totalPages
+                      ? `http://localhost:3000/Project?page=${page + 1}&itemPerpage=${limit}`
+                      : `null`
+                    const prevPage = page > 1
+                      ? `http://localhost:3000/Project?page=${page - 1}&itemPerpage=${limit}`
+                      : `null`
+                    return {
+                      data,
+                      pagination: {
+                        itemPerpage: limit,
+                        nextPage,
+                        page,
+                        prevPage,
+                        totalPages,
+                      },
+                    }
+                  }),
+                ),
+              ),
+              // Effect.tap(b => console.log("service: ", b)),
+              Effect.withSpan("find-pagination.project.service"),
+            ),
         } satisfies ProjectRelationService
       }),
     ),

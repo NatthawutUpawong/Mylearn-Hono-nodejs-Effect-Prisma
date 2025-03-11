@@ -47,7 +47,9 @@ const loginDocs = honoOpenapi.describeRoute({
     200: {
       content: {
         "application/json": {
-          schema: resolver(responseSchema),
+          schema: resolver(S.Struct({
+            message: S.Literal("Login success"),
+          })),
         },
       },
       description: "Login User",
@@ -71,9 +73,22 @@ const logoutDocs = honoOpenapi.describeRoute({
     200: {
       content: {
         "application/json": {
+          schema: resolver(S.Struct({
+            message: S.Literal("Logged out successfully"),
+          })),
         },
       },
-      description: "Login User",
+      description: "Logout User",
+    },
+    500: {
+      content: {
+        "application/json": {
+          schema: resolver(S.Struct({
+            message: S.String,
+          })),
+        },
+      },
+      description: "Logout Error",
     },
   },
   tags: ["User"],
@@ -126,6 +141,7 @@ export function setupUserPostRoutes() {
         InvalidPasswordError: e => Effect.succeed(c.json({ message: e.msg }, 400)),
         UsernameAlreadyExitError: e => Effect.succeed(c.json({ message: e.msg }, 409)),
         findORGByIdError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
+
       }),
       Effect.withSpan("POST /.user.controller"),
     )
@@ -169,7 +185,7 @@ export function setupUserPostRoutes() {
           : Effect.fail(UserErrors.VerifyPasswordError.new("Invalided Username or Password ")()),
       ),
 
-      Effect.andThen(token => c.json({ message: "Login success", token })),
+      Effect.andThen(() => c.json({ message: "Login success" })),
       Effect.catchTags({
         FindUserByUsernameError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
         NoSuchElementException: () => Effect.succeed(c.json({ message: "Invalided Username or Password" }, 500)),

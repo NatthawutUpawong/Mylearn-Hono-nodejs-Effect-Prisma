@@ -34,7 +34,7 @@ const deleteUserDocs = describeRoute({
       description: "Delete Organization Error",
     },
   },
-  tags: ["Organization"],
+  tags: ["Admin-Organization"],
 })
 
 const validateDeleteUserRequest = validator("param", S.Struct({
@@ -65,10 +65,10 @@ export function setupDeleteRoutes() {
 
       Effect.andThen(svc => svc.remove(ORGId)),
       Effect.andThen(parseResponse),
-      Effect.andThen(data => c.json(data, 201)),
+      Effect.andThen(data => c.json(data, 200)),
       Effect.catchTags({
         findORGByIdError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
-        PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
+        PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
         removeORGError: () => Effect.succeed(c.json({ message: "remove error" }, 500)),
       }),
       Effect.withSpan("DELETE /:employeeId.employee.controller"),

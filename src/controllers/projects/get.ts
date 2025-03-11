@@ -6,14 +6,20 @@ import { describeRoute } from "hono-openapi"
 import { resolver, validator } from "hono-openapi/effect"
 import { authMiddleware } from "../../middleware/auth.js"
 import { ServicesRuntime } from "../../runtime/indext.js"
-import { Branded, Helpers, ProjectSchema } from "../../schema/index.js"
+import { Branded, Helpers, paginationSchema, ProjectSchema } from "../../schema/index.js"
 import { ProjectServiceContext } from "../../services/project/index.js"
-import * as Errors from "../../types/error/project-errors.js"
+import { ProjectRelationServiceContext } from "../../services/projectRelation/index.js"
+import { UserroleCheckServiceContext } from "../../services/userauthen/index.js"
+import * as ProRelErrors from "../../types/error/projectRelation-errors.js"
+import * as UserErrors from "../../types/error/user-errors.js"
 
 export function setupProjectGetRoutes() {
   const app = new Hono()
 
-  const getManyResponseSchema = S.Array(ProjectSchema.Schema.omit("deletedAt"))
+  const getManyResponseSchema = S.Struct({
+    data: S.Array(ProjectSchema.Schema.omit("deletedAt")),
+    pagination: paginationSchema.Schema,
+  })
 
   const getManyDocs = describeRoute({
     responses: {
@@ -36,39 +42,32 @@ export function setupProjectGetRoutes() {
         description: "Get Many Project Error",
       },
     },
-
     tags: ["Project"],
+
   })
 
   app.get("/", authMiddleware, getManyDocs, async (c) => {
     const getUserPayload: UserSchema.UserPayload = c.get("userPayload")
 
+    const limit = Number(c.req.query("itemPerpage") ?? 10)
+    const page = Number(c.req.query("page") ?? 1)
+    const offset = (page - 1) * limit
+
     const parseResponse = Helpers.fromObjectToSchemaEffect(getManyResponseSchema)
-    // const whereCondition = { deletedAt: null }
     const program = Effect.all({
-      ProjectService: ProjectServiceContext,
+      ProjectRelationService: ProjectRelationServiceContext,
+      UserCheckservice: UserroleCheckServiceContext,
     }).pipe(
 
-      // Effect.bind("whereCondition", () =>
-      //   getUserPayload.role === "User"
-      //     ?Effect.andThen("whereCondition", () => whereCondition = )
-      //     :
-      // ),
-      Effect.bind("whereCondition", () =>
-        Effect.succeed(
-          getUserPayload.role === "User"
-            ? { deletedAt: null, userId: getUserPayload.id }
-            : getUserPayload.role === "User_ORG"
-              ? { deletedAt: null, organizationId: getUserPayload.organizationId }
-              : getUserPayload.role === "User_Admin"
-                ? { deletedAt: null }
-                : { deletedAt: null },
-        )),
-      Effect.andThen(b => b),
-      Effect.tap(b => console.log(b)),
+      Effect.bind("whereCondition", ({ UserCheckservice }) => UserCheckservice.userRoleCheckEffect(getUserPayload.role).pipe(
+        Effect.andThen(result =>
+          result === true
+            ? Effect.succeed({ userId: getUserPayload.id })
+            : Effect.succeed({ organizationId: getUserPayload.organizationId }),
+        ),
+      )),
 
-      Effect.tap(() => Effect.log("start finding many Project")),
-      Effect.andThen(({ ProjectService, whereCondition }) => ProjectService.findMany(whereCondition)),
+      Effect.andThen(({ ProjectRelationService, whereCondition }) => ProjectRelationService.findManyPagination(limit, offset, page, whereCondition)),
       Effect.andThen(b => b),
 
       Effect.andThen(parseResponse),
@@ -76,12 +75,77 @@ export function setupProjectGetRoutes() {
       Effect.andThen(data => c.json(data, 200)),
       Effect.tap(() => Effect.log("test")),
       Effect.catchTags({
-        findManyProjectError: () => Effect.succeed(c.json({ message: "find many error" }, 500)),
+        findManyProjectRelationtError: () => Effect.succeed(c.json({ message: "find many error" }, 500)),
         ParseError: () => Effect.succeed(c.json({ message: "parse error" }, 500)),
       }),
       Effect.annotateLogs({ key: "annotate" }),
       Effect.withLogSpan("test"),
       Effect.withSpan("GET /.Project.controller /"),
+    )
+
+    const result = await ServicesRuntime.runPromise(program)
+    return result
+  })
+
+  const getManyDocsAdmin = describeRoute({
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: resolver(getManyResponseSchema),
+          },
+        },
+        description: "Get Project",
+      },
+      500: {
+        content: {
+          "application/json": {
+            schema: resolver(S.Struct({
+              message: S.String,
+            })),
+          },
+        },
+        description: "Get Many Project Error",
+      },
+    },
+    tags: ["Admin-Project"],
+
+  })
+
+  app.get("Admin/", authMiddleware, getManyDocsAdmin, async (c) => {
+    const getUserPayload: UserSchema.UserPayload = c.get("userPayload")
+
+    const limit = Number(c.req.query("itemPerpage") ?? 10)
+    const page = Number(c.req.query("page") ?? 1)
+    const offset = (page - 1) * limit
+
+    const whereCondition = { deletedAt: null }
+
+    const parseResponse = Helpers.fromObjectToSchemaEffect(getManyResponseSchema)
+    const program = Effect.all({
+      ProjectRelationService: ProjectRelationServiceContext,
+    }).pipe(
+      Effect.tap(() =>
+        getUserPayload.role === "User_Admin"
+          ? Effect.void
+          : Effect.fail(UserErrors.PermissionDeniedError.new("You do not have permission to access")()),
+      ),
+
+      Effect.andThen(({ ProjectRelationService }) => ProjectRelationService.findManyPagination(limit, offset, page, whereCondition)),
+      Effect.andThen(b => b),
+
+      Effect.andThen(parseResponse),
+
+      Effect.andThen(data => c.json(data, 200)),
+      Effect.tap(() => Effect.log("test")),
+      Effect.catchTags({
+        findManyProjectRelationtError: () => Effect.succeed(c.json({ message: "find many error" }, 500)),
+        ParseError: () => Effect.succeed(c.json({ message: "parse error" }, 500)),
+        PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
+      }),
+      Effect.annotateLogs({ key: "annotate" }),
+      Effect.withLogSpan("test"),
+      Effect.withSpan("GET /Project-By-Admin.controller /"),
     )
 
     const result = await ServicesRuntime.runPromise(program)
@@ -115,11 +179,79 @@ export function setupProjectGetRoutes() {
   })
 
   const validateProjectRequest = validator("param", S.Struct({
-    reqProjectId: Branded.ProjectIdFromString,
+    ProjectId: Branded.ProjectIdFromString,
   }))
 
-  app.get("/:reqProjectId", authMiddleware, getByIdDocs, validateProjectRequest, async (c) => {
-    const { reqProjectId } = c.req.valid("param")
+  app.get("/:ProjectId", authMiddleware, getByIdDocs, validateProjectRequest, async (c) => {
+    const { ProjectId } = c.req.valid("param")
+    const getUserPayload: UserSchema.UserPayload = c.get("userPayload")
+
+    const parseResponse = Helpers.fromObjectToSchemaEffect(getByIdResponseSchema)
+
+    const program = Effect.all({
+      ProjectRelationService: ProjectRelationServiceContext,
+      ProjectService: ProjectServiceContext,
+      UserCheckservice: UserroleCheckServiceContext,
+    }).pipe(
+      Effect.andThen(b => b),
+      Effect.bind("projectRelation", ({ ProjectRelationService }) => ProjectRelationService.findById(ProjectId).pipe(
+        Effect.catchTag("NoSuchElementException", () =>
+          Effect.fail(ProRelErrors.findProjectRelationtByIdError.new(`not found ${ProjectId}`)())),
+      )),
+
+      Effect.tap(({ projectRelation, UserCheckservice }) => UserCheckservice.userRoleCheckEffect(getUserPayload.role).pipe(
+        Effect.andThen(result =>
+          result === true
+            ? UserCheckservice.userIdCheckEffect(projectRelation.userId, getUserPayload.id)
+            : UserCheckservice.userORGCheckEffect(projectRelation.organizationId, getUserPayload.organizationId),
+        ),
+      ),
+      ),
+
+      Effect.andThen(({ ProjectService }) => ProjectService.findById(ProjectId)),
+      Effect.andThen(parseResponse),
+      Effect.andThen(data => c.json(data, 200)),
+      Effect.andThen(b => b),
+      Effect.catchTags({
+        findProjectByIdError: () => Effect.succeed(c.json({ message: "fin Project by Id error" }, 500)),
+        findProjectRelationtByIdError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
+        ParseError: () => Effect.succeed(c.json({ message: "parse error" }, 500)),
+        PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 403)),
+      }),
+      Effect.annotateLogs({ key: "annotate" }),
+      Effect.withLogSpan("test"),
+      Effect.withSpan("GET /ProjectId.Project.controller /"),
+    )
+    const result = await ServicesRuntime.runPromise(program)
+    return result
+  })
+
+  const getByIdDocsAdmin = describeRoute({
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: resolver(getByIdResponseSchema),
+          },
+        },
+        description: "Get Project by Id",
+      },
+      404: {
+        content: {
+          "application/json": {
+            schema: resolver(S.Struct({
+              message: S.String,
+            })),
+          },
+        },
+        description: "Get Project By Id Not Found",
+      },
+    },
+    tags: ["Admin-Project"],
+  })
+
+  app.get("/Admin/ProjectById/:ProjectId", authMiddleware, getByIdDocsAdmin, validateProjectRequest, async (c) => {
+    const { ProjectId } = c.req.valid("param")
     const getUserPayload: UserSchema.UserPayload = c.get("userPayload")
 
     const parseResponse = Helpers.fromObjectToSchemaEffect(getByIdResponseSchema)
@@ -127,45 +259,23 @@ export function setupProjectGetRoutes() {
     const program = Effect.all({
       ProjectService: ProjectServiceContext,
     }).pipe(
-      Effect.bind("whereCondition", () =>
-        Effect.succeed(
-          getUserPayload.role === "User"
-            ? { deletedAt: null, projectId: reqProjectId, userId: getUserPayload.id }
-            : getUserPayload.role === "User_ORG"
-              ? { deletedAt: null, organizationId: getUserPayload.organizationId, projectId: reqProjectId }
-              : getUserPayload.role === "User_Admin"
-                ? { deletedAt: null, projectId: reqProjectId }
-                : { deletedAt: null, projectId: reqProjectId },
-        )),
-      Effect.andThen(b => b),
-
-      Effect.tap(() => Effect.log("start finding by Id Project")),
-      Effect.bind("foundProject", ({ ProjectService, whereCondition }) => ProjectService.findMany(whereCondition)),
-      Effect.bind("idProjectReq", ({ foundProject }) => 
-        Effect.succeed<Branded.ProjectId>(
-          foundProject.length > 0 
-            ? foundProject[0].id 
-            : 0 as Branded.ProjectId
-        )
+      Effect.tap(() =>
+        getUserPayload.role === "User_Admin"
+          ? Effect.void
+          : Effect.fail(UserErrors.PermissionDeniedError.new("You do not have permission to access")()),
       ),
-      Effect.andThen(b => b),
-      Effect.andThen(({ idProjectReq, ProjectService }) =>
-        ProjectService.findById(idProjectReq).pipe(
-                  Effect.catchTag("NoSuchElementException", () =>
-                    Effect.fail(Errors.findProjectByIdError.new(`Project Id: ${reqProjectId} not found`)())),
-        ),
-      ),
+      Effect.andThen(({ ProjectService }) => ProjectService.findById(ProjectId)),
       Effect.andThen(parseResponse),
       Effect.andThen(data => c.json(data, 200)),
-      Effect.andThen(b => b),
       Effect.catchTags({
-        findManyProjectError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
-        findProjectByIdError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
+        findProjectByIdError: () => Effect.succeed(c.json({ message: "fin Project by Id error" }, 500)),
+        NoSuchElementException: () => Effect.succeed(c.json({ message: `not found ${ProjectId}` }, 404)),
         ParseError: () => Effect.succeed(c.json({ message: "parse error" }, 500)),
+        PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
       }),
       Effect.annotateLogs({ key: "annotate" }),
       Effect.withLogSpan("test"),
-      Effect.withSpan("GET /ProjectId.Project.controller /"),
+      Effect.withSpan("GET /ProjectId-By-Admin.Project.controller /"),
     )
     const result = await ServicesRuntime.runPromise(program)
     return result

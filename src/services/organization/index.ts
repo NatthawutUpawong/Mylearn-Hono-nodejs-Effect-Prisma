@@ -20,6 +20,33 @@ export class OrganizationServiceContext extends Context.Tag("service/Organizatio
           findMany: () => repo.findManyWithRelation().pipe(
             Effect.withSpan("findmany.Organization.service"),
           ),
+          findManyPagination: (limit, offset, page) =>
+            repo.findManyPagination(limit, offset).pipe(
+              Effect.andThen(data =>
+                repo.count().pipe(
+                  Effect.andThen((totalItems) => {
+                    const totalPages = Math.ceil(totalItems / limit)
+                    const nextPage = page < totalPages
+                      ? `http://localhost:3000/ORG?page=${page + 1}&itemPerpage=${limit}`
+                      : `null`
+                    const prevPage = page > 1
+                      ? `http://localhost:3000/ORG?page=${page - 1}&itemPerpage=${limit}`
+                      : `null`
+                    return {
+                      data,
+                      pagination: {
+                        itemPerpage: limit,
+                        nextPage,
+                        page,
+                        prevPage,
+                        totalPages,
+                      },
+                    }
+                  }),
+                ),
+              ),
+              Effect.withSpan("find-pagination.Organization.service"),
+            ),
           update: (id, data) => repo.update(id, data).pipe(
             Effect.withSpan("update.Organization.service"),
           ),

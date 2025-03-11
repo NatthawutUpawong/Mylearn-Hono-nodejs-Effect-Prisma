@@ -1,14 +1,15 @@
+import type { UserSchema } from "../../schema/index.js"
 import { Effect } from "effect"
 import * as S from "effect/Schema"
 import { Hono } from "hono"
 import { describeRoute } from "hono-openapi"
 import { resolver, validator } from "hono-openapi/effect"
+import { authMiddleware } from "../../middleware/auth.js"
 import { ServicesRuntime } from "../../runtime/indext.js"
-import { Branded, Helpers, ProjectSchema, UserSchema } from "../../schema/index.js"
+import { Branded, Helpers, ProjectSchema } from "../../schema/index.js"
 import { ProjectServiceContext } from "../../services/project/index.js"
 import * as ProjectErrors from "../../types/error/project-errors.js"
 import * as UserErrors from "../../types/error/user-errors.js"
-import { authMiddleware } from "../../middleware/auth.js"
 
 const deleteUserResponseSchema = ProjectSchema.Schema.omit("deletedAt")
 
@@ -33,7 +34,7 @@ const deleteUserDocs = describeRoute({
       description: "Delete Project Error",
     },
   },
-  tags: ["Project"],
+  tags: ["Admin-Project"],
 })
 
 const validateDeleteUserRequest = validator("param", S.Struct({
@@ -46,16 +47,15 @@ export function setupDeleteRoutes() {
   app.delete("/:projectId", authMiddleware, deleteUserDocs, validateDeleteUserRequest, async (c) => {
     const { projectId } = c.req.valid("param")
     const getUserPayload: UserSchema.UserPayload = c.get("userPayload")
-    
 
     const parseResponse = Helpers.fromObjectToSchemaEffect(deleteUserResponseSchema)
 
     const program = ProjectServiceContext.pipe(
       Effect.tap(() =>
-              getUserPayload.role === "User_Admin"
-                ? Effect.void
-                : Effect.fail(UserErrors.PermissionDeniedError.new("You do not have permission to access")()),
-            ),
+        getUserPayload.role === "User_Admin"
+          ? Effect.void
+          : Effect.fail(UserErrors.PermissionDeniedError.new("You do not have permission to access")()),
+      ),
       Effect.bind("deletedProject", ProjectServiceContext =>
         ProjectServiceContext.findById(projectId).pipe(
           Effect.catchTag("NoSuchElementException", () =>
@@ -68,8 +68,8 @@ export function setupDeleteRoutes() {
       Effect.catchTags({
         findProjectByIdError: () => Effect.succeed(c.json({ message: `Not found Id: ${projectId}` }, 404)),
         ParseError: () => Effect.succeed(c.json({ messgae: "Parse error " }, 500)),
+        PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
         removeProjectError: () => Effect.succeed(c.json({ message: "remove error" }, 500)),
-        PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
       }),
       Effect.withSpan("DELETE /:employeeId.employee.controller"),
     )

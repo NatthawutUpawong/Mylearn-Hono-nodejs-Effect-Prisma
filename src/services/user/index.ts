@@ -2,17 +2,6 @@ import type { UserService } from "../../types/services/user.js"
 import { Context, Effect, Layer } from "effect"
 import { UserRepositoryContext } from "../../repositories/user/index.js"
 
-
-// export function initEmployeeService(employeeRepository: EmployeeRepository): EmployeeService {
-//   return {
-//     create: Creates.create(employeeRepository),
-//     findMany: Finds.findMany(employeeRepository),
-//     findOneById: Finds.findOneById(employeeRepository),
-//     removeById: Removes.removeById(employeeRepository),
-//     update: Updates.update(employeeRepository),
-//   }
-// }
-
 export class UserServiceContext extends Context.Tag("service/User")<UserServiceContext, UserService>() {
   static Live = Layer.effect(
     this,
@@ -33,11 +22,38 @@ export class UserServiceContext extends Context.Tag("service/User")<UserServiceC
           findMany: () => repo.findMany().pipe(
             Effect.withSpan("find-many.user.service"),
           ),
+          findManyPagination: (limit, offset, page) =>
+            repo.findManyPagination(limit, offset).pipe(
+              Effect.andThen(data =>
+                repo.count().pipe(
+                  Effect.andThen((totalItems) => {
+                    const totalPages = Math.ceil(totalItems / limit)
+                    const nextPage = page < totalPages
+                      ? `http://localhost:3000/users?page=${page + 1}&itemPerpage=${limit}`
+                      : `null`
+                    const prevPage = page > 1
+                      ? `http://localhost:3000/users?page=${page - 1}&itemPerpage=${limit}`
+                      : `null`
+                    return {
+                      data,
+                      pagination: {
+                        itemPerpage: limit,
+                        nextPage,
+                        page,
+                        prevPage,
+                        totalPages,
+                      },
+                    }
+                  }),
+                ),
+              ),
+              Effect.withSpan("find-pagination.user.service"),
+            ),
           findOneById: id => repo.findById(id).pipe(
             Effect.withSpan("find-by-id.user.service"),
           ),
           removeById: id => repo.remove(id).pipe(
-            Effect.withSpan("remove-by-id.service")
+            Effect.withSpan("remove-by-id.service"),
           ),
           update: (id, data) => repo.update(id, data).pipe(
             Effect.withSpan("update.user.service"),

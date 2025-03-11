@@ -77,5 +77,3 @@ export class IdAlreadyExitError extends Data.TaggedError("IdAlreadyExitError")<E
 export class PermissionDeniedError extends Data.TaggedError("PermissionDeniedError")<ErrorMsg> {
   static new = createErrorFactory(this)
 }
-
-

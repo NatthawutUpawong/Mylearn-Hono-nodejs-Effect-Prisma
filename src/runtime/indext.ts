@@ -11,6 +11,7 @@ import { ProjectServiceContext } from "../services/project/index.js"
 import { ProjectRelationServiceContext } from "../services/projectRelation/index.js"
 import { ProjectRepositoryContext } from "../repositories/project/index.js"
 import { ProjectRelationRepositoryContext } from "../repositories/projectRelation/index.js"
+import { UserroleCheckServiceContext } from "../services/userauthen/index.js"
 
 const PrismaClientLive = PrismaClientContext.Live
 
@@ -43,6 +44,7 @@ export const ServiceLive = Layer.mergeAll(
   ProjectRelationServiceLive,
   PasswordServiceContext.Default,
   JwtServiceContext.Default,
+  UserroleCheckServiceContext.Default,
 )
 
 export const ServicesRuntime = ManagedRuntime.make(ServiceLive)

@@ -46,7 +46,7 @@ model organization {
 model projectRelation {
   id                Int       @id @default(autoincrement())
   userId            Int
-  projectId         Int
+  projectId         Int        @unique
   organizationId    Int
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt

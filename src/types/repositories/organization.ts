@@ -12,8 +12,11 @@ export type OrganizationRepository = {
   findByIdWithRelation: (id: Branded.OrganizationId) => Effect.Effect<ORGWithRelarionSchema.ORGWithRelations, Errors.findORGByIdError | ParseError | NoSuchElementException>
   findMany: () => Effect.Effect<OrganizationSchema.OrganizationArray, Errors.findManyORGError>
   findManyWithRelation: () => Effect.Effect<ORGWithRelarionSchema.ORGWithRelationsArray, Errors.findManyORGError>
+  findManyPagination: (limit: number, offset: number,) => Effect.Effect<ORGWithRelarionSchema.ORGWithRelationsArray, Errors.findManyORGError>
   update: (id: Branded.OrganizationId, data: OrganizationSchema.UpdateOrganizationEncoded) => Effect.Effect<Organization, Errors.updateORGError | ParseError>
   updatePartial: (id: Branded.OrganizationId, data: Partial<OrganizationSchema.UpdateOrganizationEncoded>) => Effect.Effect<Organization, Errors.updateORGError>
   remove: (id: Branded.OrganizationId) => Effect.Effect<Organization, Errors.removeORGError>
   hardRemove: (id: Branded.OrganizationId) => Effect.Effect<Organization, Errors.removeORGError>
+  count: () => Effect.Effect<number, Errors.findManyORGError>
+
 }

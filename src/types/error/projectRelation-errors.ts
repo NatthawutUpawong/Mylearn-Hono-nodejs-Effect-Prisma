@@ -21,3 +21,7 @@ export class updateProjectRelationtError extends Data.TaggedError("updateProject
 export class removeProjectRelationtError extends Data.TaggedError("removeProjectRelationtError")<ErrorMsg> {
   static new = createErrorFactory(this)
 }
+
+export class accessProjectRelationError extends Data.TaggedError("accessProjectRelationError")<ErrorMsg> {
+  static new = createErrorFactory(this)
+}

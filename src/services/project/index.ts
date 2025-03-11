@@ -16,7 +16,7 @@ export class ProjectServiceContext extends Context.Tag("service/Project")<Projec
           findById: id => repo.findByIdWithRelation(id).pipe(
             Effect.withSpan("find-by-id-withrelation.project.service"),
           ),
-          findMany: (whereCondition) => repo.findMany(whereCondition).pipe(
+          findMany: () => repo.findMany().pipe(
             Effect.withSpan("findmany.project.service"),
           ),
           remove: id => repo.hardRemove(id).pipe(
