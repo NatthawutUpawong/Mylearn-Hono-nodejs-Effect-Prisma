@@ -158,7 +158,7 @@ export function setupUserPostRoutes() {
       passwordService: PasswordServiceContext,
       userServices: UserServiceContext,
     }).pipe(
-      Effect.tap(() => Effect.log("Login process stratdddddding")),
+      Effect.tap(() => Effect.log("Login process strating")),
       Effect.bind("user", ({ userServices }) => userServices.findByUsername(body.username)),
       Effect.andThen(b => b),
       Effect.bind("validPassword", ({ passwordService, user }) => passwordService.isValidPassword(user.password, body.password)),
