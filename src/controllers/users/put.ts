@@ -110,15 +110,10 @@ export function setupUserPutRoutes() {
 
         Effect.andThen(b => b),
 
-        Effect.tap(({ existingUser, userServices }) =>
-          body.id !== existingUser.id
-            ? userServices.findallById(body.id).pipe(
-                Effect.andThen(() =>
-                  Effect.fail(UserErrors.IdAlreadyExitError.new(`Id already exists: ${body.id}`)()),
-                ),
-                Effect.catchTag("NoSuchElementException", () => Effect.void),
-              )
-            : Effect.void,
+        Effect.tap(({ existingUser }) =>
+          body.id === existingUser.id
+            ? Effect.void
+            : Effect.fail(UserErrors.UserIdMatchError.new("Id from param and body id not match")()),
         ),
         Effect.andThen(({ hashedPassword, newUsername, userServices }) =>
           userServices.update(userId, { ...body, password: hashedPassword, username: newUsername }),
@@ -130,10 +125,10 @@ export function setupUserPutRoutes() {
         Effect.catchTags({
           findORGByIdError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
           FindUserByIdError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
-          IdAlreadyExitError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
           InvalidPasswordError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
           ParseError: () => Effect.succeed(c.json({ messgae: "Parse error " }, 500)),
           PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
+          UserIdMatchError: e => Effect.succeed(c.json({ message: e.msg }, 400)),
           UsernameAlreadyExitError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
 
         }),

@@ -23,4 +23,8 @@ export class removeORGError extends Data.TaggedError("removeORGError")<ErrorMsg>
   static new = createErrorFactory(this)
 }
 
+export class ORGIdNotMatchError extends Data.TaggedError("ORGIdNotMatchError")<ErrorMsg> {
+  static new = createErrorFactory(this)
+}
+
 

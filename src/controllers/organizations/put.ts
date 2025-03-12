@@ -61,23 +61,28 @@ export function setupORGPutRoutes() {
           : Effect.fail(UserErrors.PermissionDeniedError.new("You do not have permission to access")()),
       ),
       Effect.tap(() => Effect.log("Update starting")),
-      Effect.andThen(b => b),
       Effect.bind("existingORG", ({ ORGService }) => ORGService.findById(ORGId).pipe(
         Effect.catchTag("NoSuchElementException", () =>
           Effect.fail(ORGErrors.findORGByIdError.new(`not found Id: ${ORGId}`)())),
       )),
-      Effect.andThen(b => b),
       Effect.bind("newName", ({ existingORG }) =>
         Effect.succeed(body.name.trim() === "" ? existingORG.name : body.name)),
+      Effect.tap(({ existingORG }) =>
+        body.id === existingORG.id
+          ? Effect.void
+          : Effect.fail(ORGErrors.ORGIdNotMatchError.new("Id from param and body id not match")()),
+      ),
       Effect.andThen(b => b),
       Effect.andThen(({ newName, ORGService }) => ORGService.update(ORGId, { ...body, name: newName })),
 
       Effect.andThen(parseResponse),
-      Effect.andThen(data => c.json(data, 201)),
+      Effect.andThen(data => c.json(data, 200)),
       Effect.catchTags({
         findORGByIdError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
+        ORGIdNotMatchError: e => Effect.succeed(c.json({ message: e.msg }, 400)),
         ParseError: () => Effect.succeed(c.json({ message: "parse error" }, 500)),
         PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
+        updateORGError: () => Effect.succeed(c.json({ message: "update failed" }, 500)),
       }),
       Effect.withSpan("PUT /ORG.controller"),
     )
