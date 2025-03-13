@@ -81,3 +81,7 @@ export class PermissionDeniedError extends Data.TaggedError("PermissionDeniedErr
 export class UserIdMatchError extends Data.TaggedError("UserIdMatchError")<ErrorMsg> {
   static new = createErrorFactory(this)
 }
+
+export class SetCookieError extends Data.TaggedError("SetCookieError")<ErrorMsg> {
+  static new = createErrorFactory(this)
+}

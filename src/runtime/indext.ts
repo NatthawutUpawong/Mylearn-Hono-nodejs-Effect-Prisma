@@ -12,6 +12,8 @@ import { ProjectRelationServiceContext } from "../services/projectRelation/index
 import { ProjectRepositoryContext } from "../repositories/project/index.js"
 import { ProjectRelationRepositoryContext } from "../repositories/projectRelation/index.js"
 import { UserroleCheckServiceContext } from "../services/userauthen/index.js"
+import { RefreshTokenServiceContext } from "../services/refreshtoken/index.js"
+import { RefreshTokenRepositoryContext } from "../repositories/refreshtoken/index.js"
 
 const PrismaClientLive = PrismaClientContext.Live
 
@@ -34,14 +36,18 @@ const ProjectRelationServiceLive = ProjectRelationServiceContext.Live.pipe(
   Layer.provide(ProjectRelationRepositoryContext.Live),
   Layer.provide(PrismaClientLive),
 )
-// const PasswordServiceLive = PasswordServiceContext.Live.pipe(
-//     Layer.provide(PasswordServiceContext.Live),
-// )
+
+const RefreshTokenServiceLive = RefreshTokenServiceContext.Live.pipe(
+  Layer.provide(RefreshTokenRepositoryContext.Live),
+  Layer.provide(PrismaClientLive),
+)
+
 export const ServiceLive = Layer.mergeAll(
   UserServiceLive,
   OrganizationServiceLive,
   ProjectServiceLive,
   ProjectRelationServiceLive,
+  RefreshTokenServiceLive,
   PasswordServiceContext.Default,
   JwtServiceContext.Default,
   UserroleCheckServiceContext.Default,

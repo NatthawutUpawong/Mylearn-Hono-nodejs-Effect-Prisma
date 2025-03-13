@@ -80,7 +80,7 @@ export function findById(prismaClient: PrismaClient): ProjectRepository["findByI
   }).pipe(
     Effect.andThen(Effect.fromNullable),
     Effect.andThen(Helpers.fromObjectToSchema(ProjectSchema.Schema)),
-    Effect.withSpan("find-by-id.organization.repository"),
+    Effect.withSpan("find-by-id.project.repository"),
   )
 }
 
