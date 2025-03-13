@@ -11,10 +11,24 @@ function hashedPassword(password: string): Effect.Effect<string, Errors.HashedPa
 
 function isValidPassword(hashedPassword: string, password: string): Effect.Effect<boolean, Errors.VerifyPasswordError> {
   return Effect.tryPromise({
-    catch: Errors.VerifyPasswordError.new(),
+    catch: Errors.VerifyPasswordError.new("Invalided Username or Password"),
     try: () => argon2.verify(hashedPassword, password),
   })
 }
+
+// async function isValidPassword(hashedPassword: string, password: string): boolean {
+//   return await argon2.verify(hashedPassword, password)
+// }
+
+// const isValidPasswordEffect = flow(
+//   isValidPassword,
+//   Match.type<boolean>().pipe(
+//     Match.when(false, () => Effect.fail(Errors.InvalidPasswordError.new("Invalided Username or Password")())),
+//     Match.when(true, () => Effect.succeed(true)),
+//     Match.exhaustive,
+//   )
+// )
+
 
 function isPassword8CharLong(password: string): boolean {
   return password.length >= 8 && !password.includes(" ")

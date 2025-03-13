@@ -7,7 +7,7 @@ import { JwtServiceContext } from "../services/jwt/indext.js"
 import * as Errors from "../types/error/user-errors.js"
 
 export const authMiddleware = createMiddleware<{ Variables: { userPayload: UserSchema.UserPayload } }>(async (c, next) => {
-  const token = getCookie(c, "session")
+  const token = getCookie(c, "AccessToken")
 
   const programs = Effect.succeed(token).pipe(
 
@@ -31,7 +31,7 @@ export const authMiddleware = createMiddleware<{ Variables: { userPayload: UserS
     Effect.andThen(() => Effect.promise(next)),
 
     Effect.catchTags({
-      VerifyTokenError: (e) => Effect.succeed(c.json({ message: e.msg }, 401)),
+      VerifyTokenError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
 
     }),
   )

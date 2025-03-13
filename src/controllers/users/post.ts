@@ -4,100 +4,74 @@ import * as S from "effect/Schema"
 import { Hono } from "hono"
 import * as honoOpenapi from "hono-openapi"
 import { resolver, validator } from "hono-openapi/effect"
-import { deleteCookie, setCookie } from "hono/cookie"
+import { deleteCookie } from "hono/cookie"
+import { authMiddleware } from "../../middleware/auth.js"
 import { ServicesRuntime } from "../../runtime/indext.js"
 import { Helpers, UserSchema } from "../../schema/index.js"
 import { JwtServiceContext } from "../../services/jwt/indext.js"
 import { OrganizationServiceContext } from "../../services/organization/index.js"
 import { PasswordServiceContext } from "../../services/password/indext.js"
+import { RefreshTokenServiceContext } from "../../services/refreshtoken/index.js"
 import { UserServiceContext } from "../../services/user/index.js"
 import * as ORGErrors from "../../types/error/ORG-errors.js"
 import * as UserErrors from "../../types/error/user-errors.js"
 
-const responseSchema = UserSchema.Schema.omit("deletedAt")
-
-const postDocs = honoOpenapi.describeRoute({
-  responses: {
-    201: {
-      content: {
-        "application/json": {
-          schema: resolver(responseSchema),
-        },
-      },
-      description: "Create User",
-    },
-    500: {
-      content: {
-        "application/json": {
-          schema: resolver(S.Struct({
-            message: S.String,
-          })),
-        },
-      },
-      description: "Created User Error",
-    },
-  },
-  tags: ["User"],
-})
-
-const validateRequestBody = validator("json", UserSchema.CreateSchema)
-
-const loginDocs = honoOpenapi.describeRoute({
-  responses: {
-    200: {
-      content: {
-        "application/json": {
-          schema: resolver(S.Struct({
-            message: S.Literal("Login success"),
-          })),
-        },
-      },
-      description: "Login User",
-    },
-    500: {
-      content: {
-        "application/json": {
-          schema: resolver(S.Struct({
-            message: S.String,
-          })),
-        },
-      },
-      description: "Login Error",
-    },
-  },
-  tags: ["User"],
-})
-
-const logoutDocs = honoOpenapi.describeRoute({
-  responses: {
-    200: {
-      content: {
-        "application/json": {
-          schema: resolver(S.Struct({
-            message: S.Literal("Logged out successfully"),
-          })),
-        },
-      },
-      description: "Logout User",
-    },
-    500: {
-      content: {
-        "application/json": {
-          schema: resolver(S.Struct({
-            message: S.String,
-          })),
-        },
-      },
-      description: "Logout Error",
-    },
-  },
-  tags: ["User"],
-})
-
-const validateLoginRequestBody = validator("json", UserSchema.LoginSchema)
-
 export function setupUserPostRoutes() {
   const app = new Hono()
+
+  const responseSchema = UserSchema.Schema.omit("deletedAt")
+
+  const postDocs = honoOpenapi.describeRoute({
+    responses: {
+      201: {
+        content: {
+          "application/json": {
+            schema: resolver(responseSchema),
+          },
+        },
+        description: "Create User",
+      },
+      500: {
+        content: {
+          "application/json": {
+            schema: resolver(S.Struct({
+              message: S.String,
+            })),
+          },
+        },
+        description: "Created User Error",
+      },
+    },
+    tags: ["User"],
+  })
+
+  const validateRequestBody = validator("json", UserSchema.CreateSchema)
+
+  const loginDocs = honoOpenapi.describeRoute({
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: resolver(S.Struct({
+              message: S.Literal("Login success"),
+            })),
+          },
+        },
+        description: "Login User",
+      },
+      500: {
+        content: {
+          "application/json": {
+            schema: resolver(S.Struct({
+              message: S.String,
+            })),
+          },
+        },
+        description: "Login Error",
+      },
+    },
+    tags: ["User"],
+  })
 
   app.post("/", postDocs, validateRequestBody, async (c) => {
     const body = c.req.valid("json")
@@ -150,6 +124,33 @@ export function setupUserPostRoutes() {
     return result
   })
 
+  const logoutDocs = honoOpenapi.describeRoute({
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: resolver(S.Struct({
+              message: S.Literal("Logged out successfully"),
+            })),
+          },
+        },
+        description: "Logout User",
+      },
+      500: {
+        content: {
+          "application/json": {
+            schema: resolver(S.Struct({
+              message: S.String,
+            })),
+          },
+        },
+        description: "Logout Error",
+      },
+    },
+    tags: ["User"],
+  })
+
+  const validateLoginRequestBody = validator("json", UserSchema.LoginSchema)
   app.post("/login", loginDocs, validateLoginRequestBody, async (c) => {
     const body = c.req.valid("json")
 
@@ -157,40 +158,47 @@ export function setupUserPostRoutes() {
       jwtServices: JwtServiceContext,
       passwordService: PasswordServiceContext,
       userServices: UserServiceContext,
+      refreshtokenservice: RefreshTokenServiceContext,
     }).pipe(
       Effect.tap(() => Effect.log("Login process strating")),
-      Effect.bind("user", ({ userServices }) => userServices.findByUsername(body.username)),
-      Effect.andThen(b => b),
+      Effect.bind("user", ({ userServices }) => userServices.findByUsername(body.username).pipe(
+        Effect.catchTag("NoSuchElementException", () =>
+          Effect.fail(UserErrors.FindUserByUsernameError.new(`Invalided Username or Password`)())),
+      )),
       Effect.bind("validPassword", ({ passwordService, user }) => passwordService.isValidPassword(user.password, body.password)),
 
-      Effect.andThen(b => b),
-
-      Effect.andThen(({ jwtServices, user, validPassword }) =>
-        validPassword
-          ? jwtServices.SignToken({
-              id: user.id,
-              username: user.username,
-              role: user.role,
-              organizationId: user.organizationId,
-            }).pipe(
-              Effect.tap(token =>
-                setCookie(c, "session", token, {
-                  httpOnly: true,
-                  maxAge: 60 * 5,
-                  sameSite: "Strict",
-                  secure: true,
-                }),
-              ),
-            )
-          : Effect.fail(UserErrors.VerifyPasswordError.new("Invalided Username or Password ")()),
+      Effect.tap(({ validPassword }) =>
+        !validPassword
+          ? Effect.fail(UserErrors.VerifyPasswordError.new("Invalided Username or Password")())
+          : Effect.void,
       ),
+
+      Effect.bind("RefreshToken", ({ jwtServices }) => jwtServices.SignToken()),
+      Effect.bind("AccessToken", ({ jwtServices, user }) => jwtServices.SignTokenWihtPayload({
+        id: user.id,
+        username: user.username,
+        role: user.role,
+        organizationId: user.organizationId,
+      })),
+
+      Effect.tap(({ refreshtokenservice, user, RefreshToken }) => refreshtokenservice.findByUserId(user.id).pipe(
+        Effect.catchTags({
+          NoSuchElementException: () => refreshtokenservice.create({ userId: user.id, token: RefreshToken }),
+        }),
+        Effect.tap(token => refreshtokenservice.update(token.id, { id: token.id, userId: token.userId, token: RefreshToken })),
+      )),
+
+      Effect.tap(({ RefreshToken, jwtServices }) => jwtServices.SetTokenCookie(c, "RefreshToken", RefreshToken, 60 * 5)),
+      Effect.tap(({ AccessToken, jwtServices }) => jwtServices.SetTokenCookie(c, "AccessToken", AccessToken, 60 * 60 * 24 * 7)),
 
       Effect.andThen(() => c.json({ message: "Login success" })),
       Effect.catchTags({
-        FindUserByUsernameError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
-        NoSuchElementException: () => Effect.succeed(c.json({ message: "Invalided Username or Password" }, 500)),
+        FindUserByUsernameError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
+        findRefreshTokenUserByIdError: () => Effect.succeed(c.json({ message: "find token error" }, 500)),
         ParseError: () => Effect.succeed(c.json({ message: "Paser data error" }, 500)),
         VerifyPasswordError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
+        SetCookieError: () => Effect.succeed(c.json({ message: "set cookie error" }, 500)),
+        SignTokenError: () => Effect.succeed(c.json({ message: "sign token error" }, 500)),
       }),
       Effect.withSpan("POST /.user.controller"),
     )
@@ -198,9 +206,24 @@ export function setupUserPostRoutes() {
     return result
   })
 
-  app.post("/logout", logoutDocs, async (c) => {
-    deleteCookie(c, "session")
-    return c.json({ message: "Logged out successfully" })
+  app.post("/logout", authMiddleware, logoutDocs, async (c) => {
+    const getUserPayload: UserSchema.UserPayload = c.get("userPayload")
+
+    const program = RefreshTokenServiceContext.pipe(
+      Effect.tap(service => service.findByUserId(getUserPayload.id).pipe(
+        Effect.tap(RefreshToken => service.remove(RefreshToken.id)),
+        Effect.tap(() => deleteCookie(c, "RefreshToken")),
+        Effect.tap(() => deleteCookie(c, "AccessToken")),
+      )),
+      Effect.andThen(() => c.json({ message: "Logged out successfully" })),
+      Effect.catchTags({
+        findRefreshTokenUserByIdError: () => Effect.succeed(c.json({ message: "find token error" }, 500)),
+        removeRefreshTokenError: () => Effect.succeed(c.json({ message: "remove token error" }, 500)),
+      }),
+      Effect.withSpan("POST /:user.logout.controller"),
+    )
+    const result = await ServicesRuntime.runPromise(program)
+    return result
   })
 
   return app
