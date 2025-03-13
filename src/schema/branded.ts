@@ -48,5 +48,17 @@ export const ProjectRelationIdFromString = S.transform(
   },
 )
 
+export const RefreshTokenId = S.Number.pipe(S.brand("RefreshTokenId")).annotations({ jsonSchema: { type: "number" } })
+export type RefreshTokenId = S.Schema.Type<typeof RefreshTokenId>
+
+export const RefreshTokenIdFromString = S.transform(
+  S.NumberFromString,
+  RefreshTokenId,
+  {
+    decode: id => RefreshTokenId.make(id),
+    encode: id => id,
+  },
+)
+
 export const UsernameType = S.String.pipe(S.brand("UsernameType")).annotations({jsonSchema: {type: "string"}})
 export type UsernameType = S.Schema.Type<typeof UsernameType>
