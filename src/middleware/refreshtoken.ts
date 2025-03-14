@@ -6,29 +6,29 @@ import { ServicesRuntime } from "../runtime/indext.js"
 import { JwtServiceContext } from "../services/jwt/indext.js"
 import * as Errors from "../types/error/user-errors.js"
 
-export const authMiddleware = createMiddleware<{ Variables: { userPayload: UserSchema.UserPayload } }>(async (c, next) => {
-  const AccessToken = getCookie(c, "AccessToken")
-  const RefreshToken = getCookie(c, "RefreshToken")
+export const refreshTokenMiddleware = createMiddleware<{ Variables: { userPayload: UserSchema.UserPayload } }>(async (c, next) => {
+  const RefreshTokenCookie = getCookie(c, "RefreshToken")
 
   const programs = Effect.all({
     JwtService: JwtServiceContext,
   }).pipe(
+    Effect.tap(() => console.log("process start")),
 
-    Effect.bind("AccessToken", () =>
-      AccessToken && RefreshToken
-        ? Effect.succeed(AccessToken)
+    Effect.bind("RefreshToken", () =>
+      RefreshTokenCookie
+        ? Effect.succeed(RefreshTokenCookie)
         : Effect.fail(Errors.VerifyTokenError.new("Unauthorized")())),
+    Effect.andThen(b => b),
 
-    Effect.andThen(({ AccessToken, JwtService }) => JwtService.VerifyToken(AccessToken).pipe(
+    Effect.tap(({ JwtService, RefreshToken }) => JwtService.VerifyToken(RefreshToken).pipe(
       Effect.catchTag("VerifyTokenError", () => Effect.fail(Errors.VerifyTokenError.new("Unauthorized")())),
     )),
-
-    Effect.tap((decoded) => {
-      c.set("userPayload", decoded as UserSchema.UserPayload)
-      return Effect.void
-    }),
-
     Effect.andThen(b => b),
+
+    // Effect.tap(({RefreshToken}) => {
+    //   c.set("token", RefreshToken as RefreshTokenSchema.RefreshToken["token"])
+    //   return Effect.void
+    // }),
 
     Effect.andThen(() => Effect.promise(next)),
 

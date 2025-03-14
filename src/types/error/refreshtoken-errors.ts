@@ -9,6 +9,9 @@ export class createRefreshTokenError extends Data.TaggedError("createRefreshToke
 export class findRefreshTokenUserByIdError extends Data.TaggedError("findRefreshTokenUserByIdError")<ErrorMsg> {
   static new = createErrorFactory(this)
 }
+export class findRefreshTokenUserByTokenError extends Data.TaggedError("findRefreshTokenUserByTokenError")<ErrorMsg> {
+  static new = createErrorFactory(this)
+}
 
 export class updateRefreshTokenError extends Data.TaggedError("updateRefreshTokenError")<ErrorMsg> {
   static new = createErrorFactory(this)

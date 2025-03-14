@@ -188,8 +188,8 @@ export function setupUserPostRoutes() {
         Effect.tap(token => refreshtokenservice.update(token.id, { id: token.id, userId: token.userId, token: RefreshToken })),
       )),
 
-      Effect.tap(({ RefreshToken, jwtServices }) => jwtServices.SetTokenCookie(c, "RefreshToken", RefreshToken, 60 * 5)),
-      Effect.tap(({ AccessToken, jwtServices }) => jwtServices.SetTokenCookie(c, "AccessToken", AccessToken, 60 * 60 * 24 * 7)),
+      Effect.tap(({ RefreshToken, jwtServices }) => jwtServices.SetTokenCookie(c, "RefreshToken", RefreshToken, 60 * 60 * 24 * 7)),
+      Effect.tap(({ AccessToken, jwtServices }) => jwtServices.SetTokenCookie(c, "AccessToken", AccessToken, 60 * 5)),
 
       Effect.andThen(() => c.json({ message: "Login success" })),
       Effect.catchTags({

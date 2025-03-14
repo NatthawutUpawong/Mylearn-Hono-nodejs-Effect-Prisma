@@ -6,6 +6,7 @@ import { setupScalarDocs } from "./config/openapi/setup-scalar-docs.js"
 import healthzApp from "./controllers/healthz.js"
 import * as ORGController from "./controllers/organizations/index.js"
 import * as ProjectController from "./controllers/projects/index.js"
+import * as RefreshTokenController from "./controllers/refreshtoken/index.js"
 import * as UserController from "./controllers/users/index.js"
 // import prismaClient from "./repositories/prisma.js"
 // import initUserRepository from "./repositories/user/index.js"
@@ -19,6 +20,7 @@ setupOpenApi(app)
 app.route("/users", UserController.setupUserRoutes())
 app.route("/ORG", ORGController.setupUserRoutes())
 app.route("/Project", ProjectController.setupProjectRoutes())
+app.route("/RefreshToken", RefreshTokenController.setupRefreshTokenRoutes())
 
 app.route("/docs", setupScalarDocs())
 app.route("/healthz", healthzApp)

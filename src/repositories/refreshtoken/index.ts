@@ -10,6 +10,7 @@ import * as Updates from "./updates.js"
 function initRefreshTokenRepositoryContext(prismaClient: PrismaClient): Types.RefreshTokenRepository {
   return {
     create: Creates.create(prismaClient),
+    findByToken: Finds.findByToken(prismaClient),
     findByUserId: Finds.findByUserId(prismaClient),
     hardRemove: Removes.hardRemoveById(prismaClient),
     remove: Removes.remove(prismaClient),
