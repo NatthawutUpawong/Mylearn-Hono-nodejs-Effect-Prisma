@@ -13,8 +13,11 @@ export class RefreshTokenServiceContext extends Context.Tag("service/refreshtoke
           create: data => repo.create(data).pipe(
             Effect.withSpan("create.refreshtoken.service"),
           ),
+          findByToken: token => repo.findByToken(token).pipe(
+            Effect.withSpan("find-by-token.refreshtoken.service"),
+          ),
           findByUserId: id => repo.findByUserId(id).pipe(
-            Effect.withSpan("find-by-id-withrelation.refreshtoken.service"),
+            Effect.withSpan("find-by-id.refreshtoken.service"),
           ),
           remove: id => repo.hardRemove(id).pipe(
             Effect.withSpan("remove.refreshtoken.service"),

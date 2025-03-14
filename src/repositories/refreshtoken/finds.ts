@@ -19,3 +19,18 @@ export function findByUserId(prismaClient: PrismaClient): RefreshTokenRepository
     Effect.withSpan("find-by-id.organization.repository"),
   )
 }
+export function findByToken(prismaClient: PrismaClient): RefreshTokenRepository["findByToken"] {
+  return token => Effect.tryPromise({
+    catch: Errors.findRefreshTokenUserByTokenError.new(),
+    try: () => prismaClient.refreshtoken.findUnique({
+      where: {
+        deletedAt: null,
+        token,
+      },
+    }),
+  }).pipe(
+    Effect.andThen(Effect.fromNullable),
+    Effect.andThen(Helpers.fromObjectToSchema(RefreshTokenSchema.Schema)),
+    Effect.withSpan("find-by-id.organization.repository"),
+  )
+}
