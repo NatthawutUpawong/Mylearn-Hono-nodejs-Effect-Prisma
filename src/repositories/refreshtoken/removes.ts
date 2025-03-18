@@ -21,7 +21,7 @@ export function remove(prismaClient: PrismaClient): RefreshTokenRepository["remo
   )
 }
 
-export function hardRemoveById(prismaClient: PrismaClient): RefreshTokenRepository["hardRemove"] {
+export function hardRemoveById(prismaClient: PrismaClient): RefreshTokenRepository["hardRemoveById"] {
   return id => Effect.tryPromise({
     catch: Errors.removeRefreshTokenError.new(),
     try: () => prismaClient.refreshtoken.delete({
@@ -31,6 +31,20 @@ export function hardRemoveById(prismaClient: PrismaClient): RefreshTokenReposito
     }),
   }).pipe(
     Effect.andThen(Helpers.fromObjectToSchema(RefreshTokenSchema.Schema)),
-    Effect.withSpan("hard-remove.refreshtoken.repostory"),
+    Effect.withSpan("hard-remove-by-id.refreshtoken.repostory"),
+  )
+}
+
+export function hardRemoveByUserId(prismaClient: PrismaClient): RefreshTokenRepository["hardRemoveByUserId"] {
+  return userId => Effect.tryPromise({
+    catch: Errors.removeRefreshTokenError.new(),
+    try: () => prismaClient.refreshtoken.delete({
+      where: {
+        userId,
+      },
+    }),
+  }).pipe(
+    Effect.andThen(Helpers.fromObjectToSchema(RefreshTokenSchema.Schema)),
+    Effect.withSpan("hard-remove-by-userId.refreshtoken.repostory"),
   )
 }

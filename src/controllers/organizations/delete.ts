@@ -71,7 +71,7 @@ export function setupDeleteRoutes() {
         PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
         removeORGError: () => Effect.succeed(c.json({ message: "remove error" }, 500)),
       }),
-      Effect.withSpan("DELETE /:employeeId.employee.controller"),
+      Effect.withSpan("DELETE /:ORGId.organization.controller"),
     )
 
     const result = await ServicesRuntime.runPromise(program)

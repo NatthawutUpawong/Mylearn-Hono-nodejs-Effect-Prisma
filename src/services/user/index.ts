@@ -58,6 +58,12 @@ export class UserServiceContext extends Context.Tag("service/User")<UserServiceC
           update: (id, data) => repo.update(id, data).pipe(
             Effect.withSpan("update.user.service"),
           ),
+          updateByAdmin: (id, data) => repo.updateByAdmin(id, data).pipe(
+            Effect.withSpan("update.user-by-admin.service"),
+          ),
+          updateByUser: (id, data) => repo.updateByUser(id, data).pipe(
+            Effect.withSpan("update.user-by-user.service"),
+          ),
         } satisfies UserService
       }),
     ),

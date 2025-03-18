@@ -33,6 +33,14 @@ export const UpdateSchema = Schema.omit("_tag", "createdAt", "updatedAt", "delet
 export type UpdateUser = S.Schema.Type<typeof UpdateSchema>
 export type UpdateUserEncoded = S.Schema.Encoded<typeof UpdateSchema>
 
+export const UpdateByUserSchema = Schema.omit("organizationId","role","_tag", "createdAt","updatedAt", "deletedAt")
+export type UpdateUserByUser = S.Schema.Type<typeof UpdateByUserSchema>
+export type UpdateUserByUserEncoded = S.Schema.Encoded<typeof UpdateByUserSchema>
+
+export const UpdateByAdminSchema = Schema.omit("username","password","_tag", "createdAt","updatedAt", "deletedAt")
+export type UpdateUserByAdmin = S.Schema.Type<typeof UpdateByAdminSchema>
+export type UpdateUserByAdminEncoded = S.Schema.Encoded<typeof UpdateByAdminSchema>
+
 export const LoginSchema = Schema.pick("username", "password")
 export type LoginUser = S.Schema.Type<typeof LoginSchema>
 export type LoginUserEncoded = S.Schema.Encoded<typeof LoginSchema>

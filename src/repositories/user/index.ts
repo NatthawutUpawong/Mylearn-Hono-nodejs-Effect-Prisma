@@ -20,12 +20,13 @@ function initUserRepository(prismaClient: PrismaClient): Types.UserRepository {
     hardRemove: Removes.hardRemoveById(prismaClient),
     remove: Removes.remove(prismaClient),
     update: Updates.update(prismaClient),
+    updateByAdmin: Updates.updateByAdmin(prismaClient),
+    updateByUser: Updates.updateByUser(prismaClient),
     updatePartial: Updates.updatePartial(prismaClient),
   }
 }
 
 export class UserRepositoryContext extends Context.Tag("repository/User")<UserRepositoryContext, Types.UserRepository>() {
-  // method Live ที่จะใช้สร้าง Context EmployeeRepositoryContext จะสร้างผ่าน Layer.effect(<class name>, <Effect value>) รับ parameters 2 ตัว
   static Live = Layer.effect(this, Effect.gen(function* () {
     const prismaClient = yield * PrismaClientContext
     return initUserRepository(prismaClient)

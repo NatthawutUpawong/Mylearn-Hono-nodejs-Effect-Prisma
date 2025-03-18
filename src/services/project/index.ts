@@ -13,8 +13,8 @@ export class ProjectServiceContext extends Context.Tag("service/Project")<Projec
           create: data => repo.create(data).pipe(
             Effect.withSpan("create.Project.service"),
           ),
-          findById: id => repo.findByIdWithRelation(id).pipe(
-            Effect.withSpan("find-by-id-withrelation.project.service"),
+          findById: id => repo.findById(id).pipe(
+            Effect.withSpan("find-by-id.project.service"),
           ),
           findMany: () => repo.findMany().pipe(
             Effect.withSpan("findmany.project.service"),

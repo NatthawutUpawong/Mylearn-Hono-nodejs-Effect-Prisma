@@ -23,17 +23,6 @@ model user {
   
 }
 
-model refreshtoken{
-  id                Int        @id @default(autoincrement())
-  userId            Int?       @unique
-  token             String     @unique
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
-  deletedAt         DateTime?
-
-  user      user? @relation(fields: [userId], references: [id], onDelete: SetNull)
-}
-
 model project {
   id      Int       @id @default(autoincrement())
   name    String
@@ -67,6 +56,17 @@ model projectRelation {
   user             user         @relation(fields: [userId], references: [id], onDelete: Cascade)
   project          project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
   organization     organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model refreshtoken{
+  id                Int        @id @default(autoincrement())
+  userId            Int?       @unique
+  token             String     @unique
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  deletedAt         DateTime?
+
+  user      user? @relation(fields: [userId], references: [id], onDelete: SetNull)
 }
 
 enum Role {

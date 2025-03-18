@@ -29,7 +29,7 @@ export function setupOpenApi(app: Hono) {
           },
           {
             name: "Admin",
-            tags: ["Admin-User", "Admin-Organization", "Admin-Project"],
+            tags: ["Admin-User", "Admin-Organization", "Admin-Project", "Admin-RefreshToken"],
           },
         ],
       },

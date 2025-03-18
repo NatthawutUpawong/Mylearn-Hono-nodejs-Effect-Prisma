@@ -25,11 +25,6 @@ export const refreshTokenMiddleware = createMiddleware<{ Variables: { userPayloa
     )),
     Effect.andThen(b => b),
 
-    // Effect.tap(({RefreshToken}) => {
-    //   c.set("token", RefreshToken as RefreshTokenSchema.RefreshToken["token"])
-    //   return Effect.void
-    // }),
-
     Effect.andThen(() => Effect.promise(next)),
 
     Effect.catchTags({

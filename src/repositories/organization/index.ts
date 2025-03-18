@@ -25,7 +25,6 @@ function initOrganizationRepositoryContext(prismaClient: PrismaClient): Types.Or
 }
 
 export class OrganizationRepositoryContext extends Context.Tag("repository/Organization")<OrganizationRepositoryContext, Types.OrganizationRepository>() {
-  // method Live ที่จะใช้สร้าง Context EmployeeRepositoryContext จะสร้างผ่าน Layer.effect(<class name>, <Effect value>) รับ parameters 2 ตัว
   static Live = Layer.effect(this, Effect.gen(function* () {
     const prismaClient = yield * PrismaClientContext
     return initOrganizationRepositoryContext(prismaClient)

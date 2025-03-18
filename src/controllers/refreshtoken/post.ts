@@ -53,7 +53,7 @@ export function setupRefreshTokenGetRoutes() {
 
       Effect.bind("RefreshToken", ({ refreshtokenservice }) => refreshtokenservice.findByToken(token as RefreshTokenSchema.RefreshToken["token"]).pipe(
         Effect.catchTag("NoSuchElementException", () =>
-          Effect.fail(RefreshTokenErrors.findRefreshTokenUserByTokenError.new(`Unauthorized`)())),
+          Effect.fail(RefreshTokenErrors.findRefreshTokenByTokenError.new(`Unauthorized`)())),
       )),
 
       Effect.bind("user", ({ RefreshToken, userServices }) => userServices.findOneById(RefreshToken.userId).pipe(
@@ -78,7 +78,7 @@ export function setupRefreshTokenGetRoutes() {
         SetCookieError: () => Effect.succeed(c.json({ message: "set cookie error" }, 500)),
         SignTokenError: () => Effect.succeed(c.json({ message: "sign token error" }, 500)),
       }),
-      Effect.withSpan("POST /.user.controller"),
+      Effect.withSpan("POST /.refres-htoken.controller"),
     )
     const result = await ServicesRuntime.runPromise(programs)
     return result

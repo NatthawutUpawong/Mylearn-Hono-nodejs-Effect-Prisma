@@ -19,8 +19,41 @@ export class RefreshTokenServiceContext extends Context.Tag("service/refreshtoke
           findByUserId: id => repo.findByUserId(id).pipe(
             Effect.withSpan("find-by-id.refreshtoken.service"),
           ),
-          remove: id => repo.hardRemove(id).pipe(
-            Effect.withSpan("remove.refreshtoken.service"),
+          findMany: () => repo.finManyWithRelation().pipe(
+            Effect.withSpan("find-by-token.refreshtoken.service"),
+          ),
+          findManyPagination: (limit, offset, page) =>
+            repo.findManyPagination(limit, offset).pipe(
+              Effect.andThen(data =>
+                repo.count().pipe(
+                  Effect.andThen((totalItems) => {
+                    const totalPages = Math.ceil(totalItems / limit)
+                    const nextPage = page < totalPages
+                      ? `http://localhost:3000/ORG?page=${page + 1}&itemPerpage=${limit}`
+                      : `null`
+                    const prevPage = page > 1
+                      ? `http://localhost:3000/ORG?page=${page - 1}&itemPerpage=${limit}`
+                      : `null`
+                    return {
+                      data,
+                      pagination: {
+                        itemPerpage: limit,
+                        nextPage,
+                        page,
+                        prevPage,
+                        totalPages,
+                      },
+                    }
+                  }),
+                ),
+              ),
+              Effect.withSpan("find-pagination.refreshtoken.service"),
+            ),
+          hardRemoveById: id => repo.hardRemoveById(id).pipe(
+            Effect.withSpan("remove-by-id.refreshtoken.service"),
+          ),
+          hardRemoveByUserId: id => repo.hardRemoveByUserId(id).pipe(
+            Effect.withSpan("remove-by-user-id.refreshtoken.service"),
           ),
           update: (id, data) => repo.update(id, data).pipe(
             Effect.withSpan("update.refreshtoken.service"),

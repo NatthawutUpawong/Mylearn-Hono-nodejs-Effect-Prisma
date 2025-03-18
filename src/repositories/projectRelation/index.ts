@@ -26,7 +26,6 @@ function initProjectRelationRepositoryContext(prismaClient: PrismaClient): Types
 }
 
 export class ProjectRelationRepositoryContext extends Context.Tag("repository/projectrelation")<ProjectRelationRepositoryContext, Types.ProjectRelationRepository>() {
-  // method Live ที่จะใช้สร้าง Context EmployeeRepositoryContext จะสร้างผ่าน Layer.effect(<class name>, <Effect value>) รับ parameters 2 ตัว
   static Live = Layer.effect(this, Effect.gen(function* () {
     const prismaClient = yield * PrismaClientContext
     return initProjectRelationRepositoryContext(prismaClient)
