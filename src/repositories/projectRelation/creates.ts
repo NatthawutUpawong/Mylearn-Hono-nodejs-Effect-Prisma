@@ -14,9 +14,7 @@ export function create(prismaClient: PrismaClient): ProjectRelationRepository["c
       },
     }),
   }).pipe(
-    // Effect.tap(b => console.log("repo", b)),
     Effect.andThen(Helpers.fromObjectToSchema(ProjectRelationsWithRelationsSchema.Schema)),
-    // Effect.tap(b => console.log("repo", b)),
     Effect.withSpan("create.projectRelation.repository"),
   )
 }

@@ -1,9 +1,11 @@
-import type { UserSchema } from "../schema/index.js"
+import type { RefreshTokenSchema, UserSchema } from "../schema/index.js"
 import { Effect } from "effect"
 import { getCookie } from "hono/cookie"
 import { createMiddleware } from "hono/factory"
 import { ServicesRuntime } from "../runtime/indext.js"
 import { JwtServiceContext } from "../services/jwt/indext.js"
+import { RefreshTokenServiceContext } from "../services/refreshtoken/index.js"
+import * as RefreshTokenErrors from "../types/error/refreshtoken-errors.js"
 import * as Errors from "../types/error/user-errors.js"
 
 export const authMiddleware = createMiddleware<{ Variables: { userPayload: UserSchema.UserPayload } }>(async (c, next) => {
@@ -12,8 +14,15 @@ export const authMiddleware = createMiddleware<{ Variables: { userPayload: UserS
 
   const programs = Effect.all({
     JwtService: JwtServiceContext,
+    refreshtokenservice: RefreshTokenServiceContext,
+
   }).pipe(
 
+    Effect.bind("refreshtoken", ({ refreshtokenservice }) => refreshtokenservice.findByToken(RefreshToken as RefreshTokenSchema.RefreshToken["token"]).pipe(
+      Effect.catchTag("NoSuchElementException", () =>
+        Effect.fail(RefreshTokenErrors.findRefreshTokenByTokenError.new("Unauthorized")())),
+    )),
+    
     Effect.bind("AccessToken", () =>
       AccessToken && RefreshToken
         ? Effect.succeed(AccessToken)
@@ -29,12 +38,13 @@ export const authMiddleware = createMiddleware<{ Variables: { userPayload: UserS
     }),
 
     Effect.andThen(b => b),
+    
 
     Effect.andThen(() => Effect.promise(next)),
 
     Effect.catchTags({
+      findRefreshTokenUserByTokenError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
       VerifyTokenError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
-
     }),
   )
 

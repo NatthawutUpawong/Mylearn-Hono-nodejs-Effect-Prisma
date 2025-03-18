@@ -73,6 +73,7 @@ export function setupProjectPutRoutes() {
       ),
       ),
       Effect.bind("existingProject", ({ ProjectService }) => ProjectService.findById(ProjectId)),
+
       Effect.bind("newName", ({ existingProject }) =>
         Effect.succeed(body.name.trim() === ""
           ? existingProject.name

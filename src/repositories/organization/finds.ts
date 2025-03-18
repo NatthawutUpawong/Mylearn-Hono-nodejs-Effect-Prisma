@@ -13,7 +13,6 @@ export function findMany(prismaClient: PrismaClient): OrganizationRepository["fi
       },
     }),
   }).pipe(
-    // Effect.tap(b => console.log(b)),
     Effect.andThen(Helpers.fromObjectToSchema(OrganizationSchema.SchemaArray)),
     Effect.withSpan("find-many.organization.repository"),
   )
@@ -33,7 +32,6 @@ export function findManyWithRelation(prismaClient: PrismaClient): OrganizationRe
       },
     }),
   }).pipe(
-    // Effect.tap(b => console.log(b)),
     Effect.andThen(Helpers.fromObjectToSchema(ORGWithRelarionSchema.SchemaArray)),
     Effect.withSpan("find-many.organization.repository"),
   )

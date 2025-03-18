@@ -194,9 +194,9 @@ export function setupUserPostRoutes() {
       Effect.andThen(() => c.json({ message: "Login success" })),
       Effect.catchTags({
         FindUserByUsernameError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
-        findRefreshTokenUserByIdError: () => Effect.succeed(c.json({ message: "find token error" }, 500)),
+        findRefreshTokenByUserIdError: () => Effect.succeed(c.json({ message: "find token error" }, 500)),
         ParseError: () => Effect.succeed(c.json({ message: "Paser data error" }, 500)),
-        VerifyPasswordError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
+        VerifyPasswordError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
         SetCookieError: () => Effect.succeed(c.json({ message: "set cookie error" }, 500)),
         SignTokenError: () => Effect.succeed(c.json({ message: "sign token error" }, 500)),
       }),
@@ -211,13 +211,13 @@ export function setupUserPostRoutes() {
 
     const program = RefreshTokenServiceContext.pipe(
       Effect.tap(service => service.findByUserId(getUserPayload.id).pipe(
-        Effect.tap(RefreshToken => service.remove(RefreshToken.id)),
+        Effect.tap(RefreshToken => service.hardRemoveById(RefreshToken.id)),
         Effect.tap(() => deleteCookie(c, "RefreshToken")),
         Effect.tap(() => deleteCookie(c, "AccessToken")),
       )),
       Effect.andThen(() => c.json({ message: "Logged out successfully" })),
       Effect.catchTags({
-        findRefreshTokenUserByIdError: () => Effect.succeed(c.json({ message: "find token error" }, 500)),
+        findRefreshTokenByUserIdError: () => Effect.succeed(c.json({ message: "find token error" }, 500)),
         removeRefreshTokenError: () => Effect.succeed(c.json({ message: "remove token error" }, 500)),
       }),
       Effect.withSpan("POST /:user.logout.controller"),

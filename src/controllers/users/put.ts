@@ -11,15 +11,18 @@ import { PasswordServiceContext } from "../../services/password/indext.js"
 import { UserServiceContext } from "../../services/user/index.js"
 import * as ORGErrors from "../../types/error/ORG-errors.js"
 import * as UserErrors from "../../types/error/user-errors.js"
+import * as RefreshTokenErrors from "../../types/error/refreshtoken-errors.js"
+import { deleteCookie } from "hono/cookie"
+import { RefreshTokenServiceContext } from "../../services/refreshtoken/index.js"
 
-const updateEmployeeResponseSchema = UserSchema.Schema.omit("deletedAt")
+const updateUserByAdminResponseSchema = UserSchema.UpdateByAdminSchema
 
-const updateUserDocs = describeRoute({
+const updateByAdminDocs = describeRoute({
   responses: {
     200: {
       content: {
         "application/json": {
-          schema: resolver(updateEmployeeResponseSchema),
+          schema: resolver(updateUserByAdminResponseSchema),
         },
       },
       description: "Udate User",
@@ -27,7 +30,7 @@ const updateUserDocs = describeRoute({
     500: {
       content: {
         "application/json": {
-          schema: resolver(updateEmployeeResponseSchema),
+          schema: resolver(updateUserByAdminResponseSchema),
         },
       },
       description: "Update User Error",
@@ -36,7 +39,7 @@ const updateUserDocs = describeRoute({
   tags: ["Admin-User"],
 })
 
-const validateUpdateUserRequest = validator("json", UserSchema.UpdateSchema)
+const validateUpdateUserByAdminRequest = validator("json", UserSchema.UpdateByAdminSchema)
 const validateUpdateUserParam = validator("param", S.Struct({
   userId: Branded.UserIdFromString,
 }))
@@ -44,17 +47,18 @@ const validateUpdateUserParam = validator("param", S.Struct({
 export function setupUserPutRoutes() {
   const app = new Hono()
 
-  app.put("/:userId", authMiddleware, updateUserDocs, validateUpdateUserRequest, validateUpdateUserParam, async (c) => {
+  app.put("Admin/:userId", authMiddleware, updateByAdminDocs, validateUpdateUserByAdminRequest, validateUpdateUserParam, async (c) => {
     const body = c.req.valid("json")
     const { userId } = c.req.valid("param")
     const getUserPayload: UserSchema.UserPayload = c.get("userPayload")
 
-    const parseResponse = Helpers.fromObjectToSchemaEffect(updateEmployeeResponseSchema)
+    const parseResponse = Helpers.fromObjectToSchemaEffect(updateUserByAdminResponseSchema)
 
     const programs = Effect.all({
       ORGService: OrganizationServiceContext,
       passwordService: PasswordServiceContext,
       userServices: UserServiceContext,
+      refreshtokenService: RefreshTokenServiceContext
     })
       .pipe(
         Effect.tap(() =>
@@ -69,6 +73,87 @@ export function setupUserPutRoutes() {
             Effect.fail(ORGErrors.findORGByIdError.new(`ORG Id: ${body.organizationId} nofound`)())),
 
         )),
+        Effect.bind("existingUser", ({ userServices }) =>
+          userServices.findOneById(userId).pipe(
+            Effect.catchTag("NoSuchElementException", () =>
+              Effect.fail(UserErrors.FindUserByIdError.new(`Id not found: ${userId}`)())),
+          )),
+
+        Effect.tap(({ existingUser }) =>
+          body.id === existingUser.id
+            ? Effect.void
+            : Effect.fail(UserErrors.UserIdMatchError.new("Id from param and body id not match")()),
+        ),
+        Effect.bind("updateUser",({ userServices }) =>
+          userServices.updateByAdmin(userId, body).pipe(
+            Effect.andThen(parseResponse)
+          ),
+        ),
+        Effect.tap(({refreshtokenService, updateUser}) => refreshtokenService.findByUserId(updateUser.id).pipe(
+          Effect.catchTag("NoSuchElementException", () => Effect.void),
+          Effect.andThen(token => 
+            !token
+              ?Effect.void
+              :refreshtokenService.hardRemoveByUserId(token.userId)
+          )
+        )),
+        Effect.andThen(data => c.json(data.updateUser, 200)),
+
+        Effect.catchTags({
+          findORGByIdError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
+          FindUserByIdError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
+          ParseError: () => Effect.succeed(c.json({ messgae: "Parse error " }, 500)),
+          PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
+          UserIdMatchError: e => Effect.succeed(c.json({ message: e.msg }, 400)),
+          findRefreshTokenByUserIdError: () => Effect.succeed(c.json({ message: "Find refresh Error" }, 500)),
+          removeRefreshTokenError: () => Effect.succeed(c.json({ messgae: "User updated successfully but remove Refreshtoken Error"},500))
+        }),
+
+        Effect.withSpan("PUT /user-by-admin.controller"),
+      )
+    const result = await ServicesRuntime.runPromise(programs)
+    return result
+  })
+
+  const updateUserByUserResponseSchema = UserSchema.UpdateByUserSchema
+
+  const updateUserDocs = describeRoute({
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: resolver(updateUserByUserResponseSchema),
+          },
+        },
+        description: "Udate User",
+      },
+      500: {
+        content: {
+          "application/json": {
+            schema: resolver(updateUserByUserResponseSchema),
+          },
+        },
+        description: "Update User Error",
+      },
+    },
+    tags: ["User"],
+  })
+
+  const validateUpdateUserRequest = validator("json", UserSchema.UpdateByUserSchema)
+
+  app.put("User/:userId", authMiddleware, updateUserDocs, validateUpdateUserRequest, validateUpdateUserParam, async (c) => {
+    const body = c.req.valid("json")
+    const { userId } = c.req.valid("param")
+    // const getUserPayload: UserSchema.UserPayload = c.get("userPayload")
+
+    const parseResponse = Helpers.fromObjectToSchemaEffect(updateUserByUserResponseSchema)
+
+    const programs = Effect.all({
+      ORGService: OrganizationServiceContext,
+      passwordService: PasswordServiceContext,
+      userServices: UserServiceContext,
+    })
+      .pipe(
         Effect.bind("existingUser", ({ userServices }) =>
           userServices.findOneById(userId).pipe(
             Effect.catchTag("NoSuchElementException", () =>
@@ -116,21 +201,20 @@ export function setupUserPutRoutes() {
             : Effect.fail(UserErrors.UserIdMatchError.new("Id from param and body id not match")()),
         ),
         Effect.andThen(({ hashedPassword, newUsername, userServices }) =>
-          userServices.update(userId, { ...body, password: hashedPassword, username: newUsername }),
+          userServices.updateByUser(userId, { ...body, password: hashedPassword, username: newUsername }).pipe(
+            Effect.tap(() => deleteCookie(c, "AccessToken")),
+          ),
         ),
 
         Effect.andThen(parseResponse),
         Effect.andThen(data => c.json(data, 200)),
 
         Effect.catchTags({
-          findORGByIdError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
           FindUserByIdError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
           InvalidPasswordError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
           ParseError: () => Effect.succeed(c.json({ messgae: "Parse error " }, 500)),
-          PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
           UserIdMatchError: e => Effect.succeed(c.json({ message: e.msg }, 400)),
           UsernameAlreadyExitError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
-
         }),
 
         Effect.withSpan("PUT /user.controller"),

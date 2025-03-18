@@ -13,7 +13,6 @@ export function count(prismaClient: PrismaClient): ProjectRepository["count"] {
     }),
 
   }).pipe(
-    Effect.tap(b => console.log(b)),
     Effect.withSpan("count.project.repositoty"),
   )
 }

@@ -11,6 +11,8 @@ export type UserService = {
   findallById: (id: Branded.UserId) => Effect.Effect<UserSchema.User, Errors.FindUserByIdError | ParseError | NoSuchElementException>
   findByUsername: (username: Branded.UsernameType) => Effect.Effect<UserSchema.User, Errors.FindUserByUsernameError | ParseError | NoSuchElementException>
   update: (id: Branded.UserId, data: UserSchema.UpdateUser) => Effect.Effect<UserSchema.User, Errors.UpdateUserErro | ParseError>
+  updateByAdmin: (id: Branded.UserId, data: UserSchema.UpdateUserByAdminEncoded) => Effect.Effect<UserSchema.UpdateUserByAdmin, Errors.UpdateUserErro | ParseError>
+  updateByUser: (id: Branded.UserId, data: UserSchema.UpdateUserByUserEncoded) => Effect.Effect<UserSchema.UpdateUserByUser, Errors.UpdateUserErro | ParseError>
   removeById: (id: Branded.UserId) => Effect.Effect<UserSchema.User, Errors.RemoveUserError>
   findManyPagination: (limit: number, offset: number, page: number) => Effect.Effect<{
     data: UserSchema.UserArray

@@ -44,7 +44,6 @@ export class ProjectRelationServiceContext extends Context.Tag("service/ProjectR
                   }),
                 ),
               ),
-              // Effect.tap(b => console.log("service: ", b)),
               Effect.withSpan("find-pagination.project.service"),
             ),
         } satisfies ProjectRelationService
