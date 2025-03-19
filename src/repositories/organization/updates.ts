@@ -7,7 +7,7 @@ import * as Errors from "../../types/error/ORG-errors.js"
 export function update(prismaClient: PrismaClient): OrganizationRepository["update"] {
   return (id, data) => Effect.tryPromise({
     catch: Errors.updateORGError.new(),
-    try: () => prismaClient.organization.update({
+    try: () => prismaClient.organizations.update({
       data,
       where: {
         deletedAt: null,
@@ -23,7 +23,7 @@ export function update(prismaClient: PrismaClient): OrganizationRepository["upda
 export function updatePartial(prismaClient: PrismaClient): OrganizationRepository["updatePartial"] {
   return (id, data) => Effect.tryPromise({
     catch: Errors.updateORGError.new(),
-    try: () => prismaClient.organization.update({
+    try: () => prismaClient.organizations.update({
       data,
       where: {
         deletedAt: null,

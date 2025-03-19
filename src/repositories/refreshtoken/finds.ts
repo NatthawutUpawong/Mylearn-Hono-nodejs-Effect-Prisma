@@ -7,7 +7,7 @@ import * as Errors from "../../types/error/refreshtoken-errors.js"
 export function findByUserId(prismaClient: PrismaClient): RefreshTokenRepository["findByUserId"] {
   return userId => Effect.tryPromise({
     catch: Errors.findRefreshTokenByUserIdError.new(),
-    try: () => prismaClient.refreshtoken.findUnique({
+    try: () => prismaClient.refreshtokens.findUnique({
       where: {
         deletedAt: null,
         userId,
@@ -22,7 +22,7 @@ export function findByUserId(prismaClient: PrismaClient): RefreshTokenRepository
 export function findByToken(prismaClient: PrismaClient): RefreshTokenRepository["findByToken"] {
   return token => Effect.tryPromise({
     catch: Errors.findRefreshTokenByTokenError.new(),
-    try: () => prismaClient.refreshtoken.findUnique({
+    try: () => prismaClient.refreshtokens.findUnique({
       where: {
         deletedAt: null,
         token,
@@ -38,7 +38,7 @@ export function findByToken(prismaClient: PrismaClient): RefreshTokenRepository[
 export function finManyWithRelation(prismaClient: PrismaClient): RefreshTokenRepository["finManyWithRelation"] {
   return () => Effect.tryPromise({
     catch: Errors.findManyRefreshTokenError.new(),
-    try: () => prismaClient.refreshtoken.findMany({
+    try: () => prismaClient.refreshtokens.findMany({
       include: {
         user: {
           where: {
@@ -60,7 +60,7 @@ export function finManyWithRelation(prismaClient: PrismaClient): RefreshTokenRep
 export function findManyPagination(prismaClient: PrismaClient): RefreshTokenRepository["findManyPagination"] {
   return (limit: number, offset: number) => Effect.tryPromise({
     catch: Errors.findManyRefreshTokenError.new(),
-    try: () => prismaClient.refreshtoken.findMany({
+    try: () => prismaClient.refreshtokens.findMany({
       include: {
         user: {
           where: {

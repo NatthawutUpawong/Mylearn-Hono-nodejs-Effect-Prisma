@@ -7,7 +7,7 @@ import * as Errors from "../../types/error/project-errors.js"
 export function create(prismaClient: PrismaClient): ProjectRepository["create"] {
   return data => Effect.tryPromise({
     catch: Errors.createProjectError.new(),
-    try: () => prismaClient.project.create({
+    try: () => prismaClient.projects.create({
       data,
     }),
   }).pipe(

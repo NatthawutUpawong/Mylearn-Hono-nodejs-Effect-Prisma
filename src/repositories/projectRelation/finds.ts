@@ -7,7 +7,7 @@ import * as Errors from "../../types/error/projectRelation-errors.js"
 export function findMany(prismaClient: PrismaClient): ProjectRelationRepository["findMany"] {
   return whereCondition => Effect.tryPromise({
     catch: Errors.findManyProjectRelationtError.new(),
-    try: () => prismaClient.projectRelation.findMany({
+    try: () => prismaClient.projectRelations.findMany({
       include: {
         project: {
           include: {
@@ -33,7 +33,7 @@ export function findMany(prismaClient: PrismaClient): ProjectRelationRepository[
 export function findById(prismaClient: PrismaClient): ProjectRelationRepository["findById"] {
   return id => Effect.tryPromise({
     catch: Errors.findProjectRelationtByIdError.new(),
-    try: () => prismaClient.projectRelation.findUnique({
+    try: () => prismaClient.projectRelations.findUnique({
       where: {
         deletedAt: null,
         projectId: id,
@@ -49,7 +49,7 @@ export function findById(prismaClient: PrismaClient): ProjectRelationRepository[
 export function findManyPagination(prismaClient: PrismaClient): ProjectRelationRepository["findManyPagination"] {
   return (limit: number, offset: number, whereCondition: any) => Effect.tryPromise({
     catch: Errors.findManyProjectRelationtError.new(),
-    try: () => prismaClient.projectRelation.findMany({
+    try: () => prismaClient.projectRelations.findMany({
       include: {
         project: {
           include: {

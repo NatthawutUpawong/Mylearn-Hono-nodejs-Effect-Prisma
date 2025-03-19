@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model user {
+model users {
   id                Int        @id @default(autoincrement())
   username          String     @unique @db.VarChar(60)
   password          String
@@ -17,34 +17,34 @@ model user {
   updatedAt         DateTime   @updatedAt
   deletedAt         DateTime?
 
-  organization      organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  projectRelation projectRelation[]
-  refreshtoken      refreshtoken?
+  organization      organizations? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  projectRelation projectRelations[]
+  refreshtoken      refreshtokens?
   
 }
 
-model project {
+model projects {
   id      Int       @id @default(autoincrement())
   name    String
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
   deletedAt  DateTime?
 
-  projectRelation projectRelation?
+  projectRelation projectRelations?
 }
 
-model organization {
+model organizations {
   id                Int       @id @default(autoincrement())
   name              String
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
   deletedAt         DateTime?
 
-  users             user[]
-  projectRelation   projectRelation[]
+  users             users[]
+  projectRelation   projectRelations[]
 }
 
-model projectRelation {
+model projectRelations {
   id                Int       @id @default(autoincrement())
   userId            Int
   projectId         Int        @unique
@@ -53,12 +53,12 @@ model projectRelation {
   updatedAt         DateTime   @updatedAt
   deletedAt         DateTime?
 
-  user             user         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  project          project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  organization     organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user             users         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project          projects      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  organization     organizations @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
-model refreshtoken{
+model refreshtokens{
   id                Int        @id @default(autoincrement())
   userId            Int?       @unique
   token             String     @unique
@@ -66,7 +66,7 @@ model refreshtoken{
   updatedAt         DateTime   @updatedAt
   deletedAt         DateTime?
 
-  user      user? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user      users? @relation(fields: [userId], references: [id], onDelete: SetNull)
 }
 
 enum Role {

@@ -6,7 +6,7 @@ import * as Errors from "../../types/error/refreshtoken-errors.js"
 export function count(prismaClient: PrismaClient): RefreshTokenRepository["count"] {
   return () => Effect.tryPromise({
     catch: Errors.findManyRefreshTokenError.new(),
-    try: () => prismaClient.refreshtoken.count({
+    try: () => prismaClient.refreshtokens.count({
       where: {
         deletedAt: null,
       },

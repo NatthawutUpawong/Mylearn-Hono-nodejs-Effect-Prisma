@@ -63,8 +63,8 @@ export function setupRefreshtokenGetRoutes() {
       Effect.andThen(parseResponse),
       Effect.andThen(data => c.json(data, 200)),
       Effect.catchTags({
-        findManyRefreshTokenError: () => Effect.succeed(c.json({ message: "find many error" }, 500)),
-        ParseError: () => Effect.succeed(c.json({ message: "parse error" }, 500)),
+        findManyRefreshTokenError: () => Effect.succeed(c.json({ message: "find many Error" }, 500)),
+        ParseError: () => Effect.succeed(c.json({ message: "parse Error" }, 500)),
         PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
       }),
       Effect.annotateLogs({ key: "annotate" }),

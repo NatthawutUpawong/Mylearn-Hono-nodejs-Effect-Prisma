@@ -7,7 +7,7 @@ import * as Errors from "../../types/error/project-errors.js"
 export function update(prismaClient: PrismaClient): ProjectRepository["update"] {
   return (id, data) => Effect.tryPromise({
     catch: Errors.updateProjectError.new(),
-    try: () => prismaClient.project.update({
+    try: () => prismaClient.projects.update({
       data,
       where: {
         deletedAt: null,
@@ -20,18 +20,18 @@ export function update(prismaClient: PrismaClient): ProjectRepository["update"] 
   )
 }
 
-export function updatePartial(prismaClient: PrismaClient): ProjectRepository["updatePartial"] {
-  return (id, data) => Effect.tryPromise({
-    catch: Errors.updateProjectError.new(),
-    try: () => prismaClient.project.update({
-      data,
-      where: {
-        deletedAt: null,
-        id,
-      },
-    }),
-  }).pipe(
-    Effect.andThen(Helpers.fromObjectToSchema(ProjectSchema.Schema)),
-    Effect.withSpan("updatePartial.project.repository"),
-  )
-}
+// export function updatePartial(prismaClient: PrismaClient): ProjectRepository["updatePartial"] {
+//   return (id, data) => Effect.tryPromise({
+//     catch: Errors.updateProjectError.new(),
+//     try: () => prismaClient.projects.update({
+//       data,
+//       where: {
+//         deletedAt: null,
+//         id,
+//       },
+//     }),
+//   }).pipe(
+//     Effect.andThen(Helpers.fromObjectToSchema(ProjectSchema.Schema)),
+//     Effect.withSpan("updatePartial.project.repository"),
+//   )
+// }

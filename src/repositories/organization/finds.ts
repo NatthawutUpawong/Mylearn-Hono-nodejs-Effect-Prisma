@@ -7,7 +7,7 @@ import * as Errors from "../../types/error/ORG-errors.js"
 export function findMany(prismaClient: PrismaClient): OrganizationRepository["findMany"] {
   return () => Effect.tryPromise({
     catch: Errors.findManyORGError.new(),
-    try: () => prismaClient.organization.findMany({
+    try: () => prismaClient.organizations.findMany({
       where: {
         deletedAt: null,
       },
@@ -21,7 +21,7 @@ export function findMany(prismaClient: PrismaClient): OrganizationRepository["fi
 export function findManyWithRelation(prismaClient: PrismaClient): OrganizationRepository["findManyWithRelation"] {
   return () => Effect.tryPromise({
     catch: Errors.findManyORGError.new(),
-    try: () => prismaClient.organization.findMany({
+    try: () => prismaClient.organizations.findMany({
       include: {
         users: {
           where: { deletedAt: null },
@@ -39,7 +39,7 @@ export function findManyWithRelation(prismaClient: PrismaClient): OrganizationRe
 export function findManyPagination(prismaClient: PrismaClient): OrganizationRepository["findManyPagination"] {
   return (limit: number, offset: number) => Effect.tryPromise({
     catch: Errors.findManyORGError.new(),
-    try: () => prismaClient.organization.findMany({
+    try: () => prismaClient.organizations.findMany({
       include: {
         users: {
           where: { deletedAt: null },
@@ -52,7 +52,7 @@ export function findManyPagination(prismaClient: PrismaClient): OrganizationRepo
       },
     }),
   }).pipe(
-    Effect.andThen(Helpers.fromObjectToSchema(ORGWithRelarionSchema.SchemaArray)),
+    Effect.andThen(Helpers.fromObjectToSchema(OrganizationSchema.SchemaArray)),
     Effect.withSpan("find-many.organization.repository"),
   )
 }
@@ -60,7 +60,7 @@ export function findManyPagination(prismaClient: PrismaClient): OrganizationRepo
 export function findById(prismaClient: PrismaClient): OrganizationRepository["findById"] {
   return id => Effect.tryPromise({
     catch: Errors.findORGByIdError.new(),
-    try: () => prismaClient.organization.findUnique({
+    try: () => prismaClient.organizations.findUnique({
       where: {
         deletedAt: null,
         id,
@@ -76,7 +76,7 @@ export function findById(prismaClient: PrismaClient): OrganizationRepository["fi
 export function findByIdWithRelation(prismaClient: PrismaClient): OrganizationRepository["findByIdWithRelation"] {
   return id => Effect.tryPromise({
     catch: Errors.findORGByIdError.new(),
-    try: () => prismaClient.organization.findUnique({
+    try: () => prismaClient.organizations.findUnique({
       include: {
         users: {
           where: { deletedAt: null },

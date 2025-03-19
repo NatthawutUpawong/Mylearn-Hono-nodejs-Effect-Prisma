@@ -7,7 +7,7 @@ import * as Errors from "../../types/error/project-errors.js"
 export function findMany(prismaClient: PrismaClient): ProjectRepository["findMany"] {
   return () => Effect.tryPromise({
     catch: Errors.findManyProjectError.new(),
-    try: () => prismaClient.project.findMany({
+    try: () => prismaClient.projects.findMany({
       where: {
         deletedAt: null,
       },
@@ -21,7 +21,7 @@ export function findMany(prismaClient: PrismaClient): ProjectRepository["findMan
 export function findManyWithRelations(prismaClient: PrismaClient): ProjectRepository["findManyWithRelations"] {
   return () => Effect.tryPromise({
     catch: Errors.findManyProjectError.new(),
-    try: () => prismaClient.project.findMany({
+    try: () => prismaClient.projects.findMany({
       include: {
         projectRelation: {
           where: {
@@ -42,7 +42,7 @@ export function findManyWithRelations(prismaClient: PrismaClient): ProjectReposi
 export function findById(prismaClient: PrismaClient): ProjectRepository["findById"] {
   return id => Effect.tryPromise({
     catch: Errors.findProjectByIdError.new(),
-    try: () => prismaClient.project.findUnique({
+    try: () => prismaClient.projects.findUnique({
       where: {
         deletedAt: null,
         id,
@@ -58,7 +58,7 @@ export function findById(prismaClient: PrismaClient): ProjectRepository["findByI
 export function findByIdWithRelation(prismaClient: PrismaClient): ProjectRepository["findByIdWithRelation"] {
   return id => Effect.tryPromise({
     catch: Errors.findProjectByIdError.new(),
-    try: () => prismaClient.project.findUnique({
+    try: () => prismaClient.projects.findUnique({
       include: {
         projectRelation: {
           where: {

@@ -6,7 +6,7 @@ import * as Errors from "../../types/error/project-errors.js"
 export function count(prismaClient: PrismaClient): ProjectRepository["count"] {
   return (whereCondition) => Effect.tryPromise({
     catch: Errors.findManyProjectError.new(),
-    try: () => prismaClient.projectRelation.count({
+    try: () => prismaClient.projects.count({
       where: {
         ...whereCondition,
       },

@@ -19,7 +19,7 @@ function initProjectRepositoryContext(prismaClient: PrismaClient): Types.Project
     hardRemove: Removes.hardRemoveById(prismaClient),
     remove: Removes.remove(prismaClient),
     update: Updates.update(prismaClient),
-    updatePartial: Updates.updatePartial(prismaClient),
+    // updatePartial: Updates.updatePartial(prismaClient),
   }
 }
 

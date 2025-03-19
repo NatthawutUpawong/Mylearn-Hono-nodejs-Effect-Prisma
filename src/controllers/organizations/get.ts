@@ -5,14 +5,14 @@ import { describeRoute } from "hono-openapi"
 import { resolver, validator } from "hono-openapi/effect"
 import { authMiddleware } from "../../middleware/auth.js"
 import { ServicesRuntime } from "../../runtime/indext.js"
-import { Branded, Helpers, ORGWithRelarionSchema, paginationSchema } from "../../schema/index.js"
+import { Branded, Helpers, OrganizationSchema, paginationSchema } from "../../schema/index.js"
 import { OrganizationServiceContext } from "../../services/organization/index.js"
 
 export function setupORGGetRoutes() {
   const app = new Hono()
 
   const getManyResponseSchema = S.Struct({
-    data: S.Array(ORGWithRelarionSchema.Schema.omit("deletedAt")),
+    data: S.Array(OrganizationSchema.Schema.omit("deletedAt")),
     pagination: paginationSchema.Schema,
 
   })
@@ -56,8 +56,8 @@ export function setupORGGetRoutes() {
       Effect.andThen(parseResponse),
       Effect.andThen(data => c.json(data, 200)),
       Effect.catchTags({
-        findManyORGError: () => Effect.succeed(c.json({ message: "find many error" }, 500)),
-        ParseError: () => Effect.succeed(c.json({ message: "parse error" }, 500)),
+        findManyORGError: () => Effect.succeed(c.json({ message: "find many Error" }, 500)),
+        ParseError: () => Effect.succeed(c.json({ message: "parse Error" }, 500)),
       }),
       Effect.annotateLogs({ key: "annotate" }),
       Effect.withLogSpan("test"),
@@ -68,7 +68,7 @@ export function setupORGGetRoutes() {
     return result
   })
 
-  const getByIdResponseSchema = ORGWithRelarionSchema.Schema.omit("deletedAt")
+  const getByIdResponseSchema = OrganizationSchema.Schema.omit("deletedAt")
 
   const getByIdDocs = describeRoute({
     responses: {
@@ -112,7 +112,7 @@ export function setupORGGetRoutes() {
       Effect.catchTags({
         findORGByIdError: () => Effect.succeed(c.json({ message: "find by Id Error" }, 500)),
         NoSuchElementException: () => Effect.succeed(c.json({ message: `not found Id: ${ORGId}` }, 404)),
-        ParseError: () => Effect.succeed(c.json({ message: "parse error" }, 500)),
+        ParseError: () => Effect.succeed(c.json({ message: "parse Error" }, 500)),
       }),
       Effect.annotateLogs({ key: "annotate" }),
       Effect.withLogSpan("test"),

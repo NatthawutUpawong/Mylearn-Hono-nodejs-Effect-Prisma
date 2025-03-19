@@ -69,7 +69,7 @@ export function setupORGPostRoutes() {
       Effect.andThen(data => c.json(data, 201)),
       Effect.catchTags({
         createORGError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
-        ParseError: () => Effect.succeed(c.json({ message: "parse error" }, 500)),
+        ParseError: () => Effect.succeed(c.json({ message: "parse Error" }, 500)),
         PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
 
       }),

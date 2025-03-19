@@ -42,7 +42,7 @@ export function setupRefreshTokenGetRoutes() {
     tags: ["RefreshToken"],
   })
 
-  app.post("/refreshtoken", refreshTokenMiddleware, RefreshDocs, async (c) => {
+  app.post("/", refreshTokenMiddleware, RefreshDocs, async (c) => {
     const token = getCookie(c, "RefreshToken")
 
     const programs = Effect.all({
@@ -74,9 +74,9 @@ export function setupRefreshTokenGetRoutes() {
       Effect.catchTags({
         findRefreshTokenUserByTokenError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
         FindUserByIdError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
-        ParseError: () => Effect.succeed(c.json({ message: "Paser data error" }, 500)),
-        SetCookieError: () => Effect.succeed(c.json({ message: "set cookie error" }, 500)),
-        SignTokenError: () => Effect.succeed(c.json({ message: "sign token error" }, 500)),
+        ParseError: () => Effect.succeed(c.json({ message: "Paser data Error" }, 500)),
+        SetCookieError: () => Effect.succeed(c.json({ message: "set cookie Error" }, 500)),
+        SignTokenError: () => Effect.succeed(c.json({ message: "sign token Error" }, 500)),
       }),
       Effect.withSpan("POST /.refres-htoken.controller"),
     )

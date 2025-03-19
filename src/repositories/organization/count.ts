@@ -6,7 +6,7 @@ import * as Errors from "../../types/error/ORG-errors.js"
 export function count(prismaClient: PrismaClient): OrganizationRepository["count"] {
   return () => Effect.tryPromise({
     catch: Errors.findManyORGError.new(),
-    try: () => prismaClient.organization.count({
+    try: () => prismaClient.organizations.count({
       where: {
         deletedAt: null,
       },

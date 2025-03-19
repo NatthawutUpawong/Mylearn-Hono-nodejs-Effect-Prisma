@@ -10,7 +10,7 @@ export const Schema = S.Struct({
   username: Branded.UsernameType,
   password: S.String,
   role: Role,
-  organizationId: Branded.OrganizationId,
+  organizationId: S.NullOr(Branded.OrganizationId),
   ...GeneralSchema.TimeStampSchema.fields,
   _tag: S.Literal("User").pipe(S.optional, S.withDefaults({
     constructor: () => "User" as const,
@@ -33,11 +33,11 @@ export const UpdateSchema = Schema.omit("_tag", "createdAt", "updatedAt", "delet
 export type UpdateUser = S.Schema.Type<typeof UpdateSchema>
 export type UpdateUserEncoded = S.Schema.Encoded<typeof UpdateSchema>
 
-export const UpdateByUserSchema = Schema.omit("organizationId","role","_tag", "createdAt","updatedAt", "deletedAt")
+export const UpdateByUserSchema = Schema.omit("organizationId", "role", "_tag", "createdAt", "updatedAt", "deletedAt")
 export type UpdateUserByUser = S.Schema.Type<typeof UpdateByUserSchema>
 export type UpdateUserByUserEncoded = S.Schema.Encoded<typeof UpdateByUserSchema>
 
-export const UpdateByAdminSchema = Schema.omit("username","password","_tag", "createdAt","updatedAt", "deletedAt")
+export const UpdateByAdminSchema = Schema.omit("username", "password", "_tag", "createdAt", "updatedAt", "deletedAt")
 export type UpdateUserByAdmin = S.Schema.Type<typeof UpdateByAdminSchema>
 export type UpdateUserByAdminEncoded = S.Schema.Encoded<typeof UpdateByAdminSchema>
 
