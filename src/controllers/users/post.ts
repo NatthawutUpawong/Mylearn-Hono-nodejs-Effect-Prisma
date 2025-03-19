@@ -85,11 +85,15 @@ export function setupUserPostRoutes() {
     }).pipe(
       Effect.tap(() => Effect.log("Signup starting")),
 
-      Effect.tap(({ ORGService }) => ORGService.findById(body.organizationId).pipe(
-        Effect.catchTag("NoSuchElementException", () =>
-          Effect.fail(ORGErrors.findORGByIdError.new(`ORG Id: ${body.organizationId} not found`)())),
-
-      )),
+      Effect.tap(({ ORGService }) =>
+        body.organizationId === null
+          ? Effect.void
+          : ORGService.findById(body.organizationId).pipe(
+              Effect.catchTag("NoSuchElementException", () =>
+                Effect.fail(ORGErrors.findORGByIdError.new(`ORG Id: ${body.organizationId} nofound`)())),
+            ),
+      ),
+      
       Effect.tap(({ userServices }) => userServices.findByUsername(body.username).pipe(
         Effect.andThen(() =>
           Effect.fail(UserErrors.UsernameAlreadyExitError.new(`Username: ${body.username} already exists`)()),
@@ -111,7 +115,7 @@ export function setupUserPostRoutes() {
       Effect.andThen(parseResponse),
       Effect.andThen(data => c.json(data, 201)),
       Effect.catchTags({
-        CreateUserError: () => Effect.succeed(c.json({ message: "create error" }, 500)),
+        CreateUserError: () => Effect.succeed(c.json({ message: "create Error" }, 500)),
         InvalidPasswordError: e => Effect.succeed(c.json({ message: e.msg }, 400)),
         UsernameAlreadyExitError: e => Effect.succeed(c.json({ message: e.msg }, 409)),
         findORGByIdError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
@@ -194,11 +198,11 @@ export function setupUserPostRoutes() {
       Effect.andThen(() => c.json({ message: "Login success" })),
       Effect.catchTags({
         FindUserByUsernameError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
-        findRefreshTokenByUserIdError: () => Effect.succeed(c.json({ message: "find token error" }, 500)),
-        ParseError: () => Effect.succeed(c.json({ message: "Paser data error" }, 500)),
+        findRefreshTokenByUserIdError: () => Effect.succeed(c.json({ message: "find token Error" }, 500)),
+        ParseError: () => Effect.succeed(c.json({ message: "Paser data Error" }, 500)),
         VerifyPasswordError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
-        SetCookieError: () => Effect.succeed(c.json({ message: "set cookie error" }, 500)),
-        SignTokenError: () => Effect.succeed(c.json({ message: "sign token error" }, 500)),
+        SetCookieError: () => Effect.succeed(c.json({ message: "set cookie Error" }, 500)),
+        SignTokenError: () => Effect.succeed(c.json({ message: "sign token Error" }, 500)),
       }),
       Effect.withSpan("POST /.user.controller"),
     )
@@ -217,8 +221,8 @@ export function setupUserPostRoutes() {
       )),
       Effect.andThen(() => c.json({ message: "Logged out successfully" })),
       Effect.catchTags({
-        findRefreshTokenByUserIdError: () => Effect.succeed(c.json({ message: "find token error" }, 500)),
-        removeRefreshTokenError: () => Effect.succeed(c.json({ message: "remove token error" }, 500)),
+        findRefreshTokenByUserIdError: () => Effect.succeed(c.json({ message: "find token Error" }, 500)),
+        removeRefreshTokenError: () => Effect.succeed(c.json({ message: "remove token Error" }, 500)),
       }),
       Effect.withSpan("POST /:user.logout.controller"),
     )

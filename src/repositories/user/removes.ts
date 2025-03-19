@@ -7,7 +7,7 @@ import * as Errors from "../../types/error/user-errors.js"
 export function remove(prismaClient: PrismaClient): UserRepository["remove"] {
   return id => Effect.tryPromise({
     catch: Errors.RemoveUserError.new(),
-    try: () => prismaClient.user.update({
+    try: () => prismaClient.users.update({
       data: {
         deletedAt: new Date(),
       },
@@ -24,7 +24,7 @@ export function remove(prismaClient: PrismaClient): UserRepository["remove"] {
 export function hardRemoveById(prismaClient: PrismaClient): UserRepository["hardRemove"] {
   return id => Effect.tryPromise({
     catch: Errors.RemoveUserError.new(),
-    try: () => prismaClient.user.delete({
+    try: () => prismaClient.users.delete({
       where: {
         id,
       }

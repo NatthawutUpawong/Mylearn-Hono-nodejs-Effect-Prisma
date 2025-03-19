@@ -6,7 +6,7 @@ import * as Errors from "../../types/error/user-errors.js"
 export function count(prismaClient: PrismaClient): UserRepository["count"] {
   return () => Effect.tryPromise({
     catch: Errors.FindManyUserError.new(),
-    try: () => prismaClient.user.count({
+    try: () => prismaClient.users.count({
       where: {
         deletedAt: null,
       },

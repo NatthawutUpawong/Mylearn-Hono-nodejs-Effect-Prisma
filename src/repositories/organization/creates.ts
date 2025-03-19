@@ -7,7 +7,7 @@ import * as Errors from "../../types/error/ORG-errors.js"
 export function create(prismaClient: PrismaClient): OrganizationRepository["create"] {
   return data => Effect.tryPromise({
     catch: Errors.createORGError.new(),
-    try: () => prismaClient.organization.create({
+    try: () => prismaClient.organizations.create({
       data,
     }),
 

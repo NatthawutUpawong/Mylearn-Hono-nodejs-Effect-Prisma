@@ -7,7 +7,7 @@ import * as Errors from "../../types/error/ORG-errors.js"
 export function remove(prismaClient: PrismaClient): OrganizationRepository["remove"] {
   return id => Effect.tryPromise({
     catch: Errors.removeORGError.new(),
-    try: () => prismaClient.organization.update({
+    try: () => prismaClient.organizations.update({
       data: {
         deletedAt: new Date(),
       },
@@ -24,7 +24,7 @@ export function remove(prismaClient: PrismaClient): OrganizationRepository["remo
 export function hardRemoveById(prismaClient: PrismaClient): OrganizationRepository["hardRemove"] {
   return id => Effect.tryPromise({
     catch: Errors.removeORGError.new(),
-    try: () => prismaClient.organization.delete({
+    try: () => prismaClient.organizations.delete({
       where: {
         id,
       },

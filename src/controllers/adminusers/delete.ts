@@ -1,4 +1,3 @@
-import type { UserSchema } from "../../schema/index.js"
 import { Effect } from "effect"
 import * as S from "effect/Schema"
 import { Hono } from "hono"
@@ -6,12 +5,11 @@ import { describeRoute } from "hono-openapi"
 import { resolver, validator } from "hono-openapi/effect"
 import { authMiddleware } from "../../middleware/auth.js"
 import { ServicesRuntime } from "../../runtime/indext.js"
-import { Branded, Helpers, ProjectSchema } from "../../schema/index.js"
-import { ProjectServiceContext } from "../../services/project/index.js"
-import * as ProjectErrors from "../../types/error/project-errors.js"
-import * as UserErrors from "../../types/error/user-errors.js"
+import { Branded, Helpers, UserSchema } from "../../schema/index.js"
+import { UserServiceContext } from "../../services/user/index.js"
+import * as Errors from "../../types/error/user-errors.js"
 
-const deleteUserResponseSchema = ProjectSchema.Schema.omit("deletedAt")
+const deleteUserResponseSchema = UserSchema.Schema.omit("deletedAt")
 
 const deleteUserDocs = describeRoute({
   responses: {
@@ -21,7 +19,7 @@ const deleteUserDocs = describeRoute({
           schema: resolver(deleteUserResponseSchema),
         },
       },
-      description: "Delete Project By UserId",
+      description: "Delete User By UserId",
     },
     500: {
       content: {
@@ -31,45 +29,45 @@ const deleteUserDocs = describeRoute({
           })),
         },
       },
-      description: "Delete Project Error",
+      description: "Delete User Error",
     },
   },
-  tags: ["Admin-Project"],
+  tags: ["Admin-User"],
 })
 
 const validateDeleteUserRequest = validator("param", S.Struct({
-  projectId: Branded.ProjectIdFromString,
+  userId: Branded.UserIdFromString,
 }))
 
 export function setupDeleteRoutes() {
   const app = new Hono()
 
-  app.delete("/:projectId", authMiddleware, deleteUserDocs, validateDeleteUserRequest, async (c) => {
-    const { projectId } = c.req.valid("param")
+  app.delete("/:userId", authMiddleware, deleteUserDocs, validateDeleteUserRequest, async (c) => {
+    const { userId } = c.req.valid("param")
+
     const getUserPayload: UserSchema.UserPayload = c.get("userPayload")
 
     const parseResponse = Helpers.fromObjectToSchemaEffect(deleteUserResponseSchema)
 
-    const program = ProjectServiceContext.pipe(
+    const program = UserServiceContext.pipe(
       Effect.tap(() =>
         getUserPayload.role === "User_Admin"
           ? Effect.void
-          : Effect.fail(UserErrors.PermissionDeniedError.new("You do not have permission to access")()),
+          : Effect.fail(Errors.PermissionDeniedError.new("You do not have permission to access")()),
       ),
-      Effect.bind("deletedProject", ProjectServiceContext =>
-        ProjectServiceContext.findById(projectId).pipe(
+      Effect.bind("deletedUser", UserServiceContext =>
+        UserServiceContext.findOneById(userId).pipe(
           Effect.catchTag("NoSuchElementException", () =>
-            Effect.fail(ProjectErrors.findProjectByIdError.new(`Not found user Id: ${projectId}`)())),
+            Effect.fail(Errors.FindUserByIdError.new(`Not found user Id: ${userId}`)())),
         )),
-
-      Effect.andThen(svc => svc.remove(projectId)),
+      Effect.andThen(b => b),
+      Effect.andThen(svc => svc.removeById(userId)),
       Effect.andThen(parseResponse),
-      Effect.andThen(data => c.json(data, 201)),
+      Effect.andThen(data => c.json(data, 200)),
       Effect.catchTags({
-        findProjectByIdError: () => Effect.succeed(c.json({ message: `Not found Id: ${projectId}` }, 404)),
-        ParseError: () => Effect.succeed(c.json({ messgae: "Parse error " }, 500)),
+        FindUserByIdError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
         PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
-        removeProjectError: () => Effect.succeed(c.json({ message: "remove error" }, 500)),
+        RemoveUserError: () => Effect.succeed(c.json({ message: "remove Error" }, 500)),
       }),
       Effect.withSpan("DELETE /:userId.user.controller"),
     )

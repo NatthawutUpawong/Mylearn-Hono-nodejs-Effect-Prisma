@@ -51,7 +51,7 @@ export function setupDeleteRoutes() {
     const parseResponse = Helpers.fromObjectToSchemaEffect(deleteResponseSchema)
 
     const program = Effect.all({
-      RefreshTokenService: RefreshTokenServiceContext
+      RefreshTokenService: RefreshTokenServiceContext,
     }).pipe(
       Effect.tap(() =>
         getUserPayload.role === "User_Admin"
@@ -59,19 +59,19 @@ export function setupDeleteRoutes() {
           : Effect.fail(UserErrors.PermissionDeniedError.new("You do not have permission to access")()),
       ),
 
-      Effect.bind("refreshtoken", ({RefreshTokenService}) =>
+      Effect.bind("refreshtoken", ({ RefreshTokenService }) =>
         RefreshTokenService.findByUserId(UserId).pipe(
           Effect.catchTag("NoSuchElementException", () =>
             Effect.fail(RefreshtokenErrors.findRefreshTokenByUserIdError.new(`Not found user Id: ${UserId}`)())),
         )),
-      Effect.andThen(b=>b),
-      Effect.andThen(({RefreshTokenService,refreshtoken}) => RefreshTokenService.hardRemoveByUserId(refreshtoken.userId)),
+      Effect.andThen(b => b),
+      Effect.andThen(({ refreshtoken, RefreshTokenService }) => RefreshTokenService.hardRemoveByUserId(refreshtoken.userId)),
       Effect.andThen(parseResponse),
       Effect.andThen(data => c.json(data, 200)),
       Effect.catchTags({
         findRefreshTokenByUserIdError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
         PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
-        removeRefreshTokenError: () => Effect.succeed(c.json({ message: "remove error" }, 500)),
+        removeRefreshTokenError: () => Effect.succeed(c.json({ message: "remove Error" }, 500)),
       }),
       Effect.withSpan("DELETE /:userID.refreshtoken.controller"),
     )

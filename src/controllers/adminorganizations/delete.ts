@@ -1,3 +1,4 @@
+import type { UserSchema } from "../../schema/index.js"
 import { Effect } from "effect"
 import * as S from "effect/Schema"
 import { Hono } from "hono"
@@ -5,11 +6,12 @@ import { describeRoute } from "hono-openapi"
 import { resolver, validator } from "hono-openapi/effect"
 import { authMiddleware } from "../../middleware/auth.js"
 import { ServicesRuntime } from "../../runtime/indext.js"
-import { Branded, Helpers, UserSchema } from "../../schema/index.js"
-import { UserServiceContext } from "../../services/user/index.js"
-import * as Errors from "../../types/error/user-errors.js"
+import { Branded, Helpers, OrganizationSchema } from "../../schema/index.js"
+import { OrganizationServiceContext } from "../../services/organization/index.js"
+import * as ORGErrors from "../../types/error/ORG-errors.js"
+import * as UserErrors from "../../types/error/user-errors.js"
 
-const deleteUserResponseSchema = UserSchema.Schema.omit("deletedAt")
+const deleteUserResponseSchema = OrganizationSchema.Schema.omit("deletedAt")
 
 const deleteUserDocs = describeRoute({
   responses: {
@@ -19,7 +21,7 @@ const deleteUserDocs = describeRoute({
           schema: resolver(deleteUserResponseSchema),
         },
       },
-      description: "Delete User By UserId",
+      description: "Delete Organization By UserId",
     },
     500: {
       content: {
@@ -29,47 +31,47 @@ const deleteUserDocs = describeRoute({
           })),
         },
       },
-      description: "Delete User Error",
+      description: "Delete Organization Error",
     },
   },
-  tags: ["Admin-User"],
+  tags: ["Admin-Organization"],
 })
 
 const validateDeleteUserRequest = validator("param", S.Struct({
-  userId: Branded.UserIdFromString,
+  ORGId: Branded.OrganizationIdFromString,
 }))
 
 export function setupDeleteRoutes() {
   const app = new Hono()
 
-  app.delete("/:userId", authMiddleware, deleteUserDocs, validateDeleteUserRequest, async (c) => {
-    const { userId } = c.req.valid("param")
-
+  app.delete("/:ORGId", authMiddleware, deleteUserDocs, validateDeleteUserRequest, async (c) => {
+    const { ORGId } = c.req.valid("param")
     const getUserPayload: UserSchema.UserPayload = c.get("userPayload")
 
     const parseResponse = Helpers.fromObjectToSchemaEffect(deleteUserResponseSchema)
 
-    const program = UserServiceContext.pipe(
+    const program = OrganizationServiceContext.pipe(
       Effect.tap(() =>
         getUserPayload.role === "User_Admin"
           ? Effect.void
-          : Effect.fail(Errors.PermissionDeniedError.new("You do not have permission to access")()),
+          : Effect.fail(UserErrors.PermissionDeniedError.new("You do not have permission to access")()),
       ),
-      Effect.bind("deletedUser", UserServiceContext =>
-        UserServiceContext.findOneById(userId).pipe(
+
+      Effect.bind("deletedORG", OrganizationServiceContext =>
+        OrganizationServiceContext.findById(ORGId).pipe(
           Effect.catchTag("NoSuchElementException", () =>
-            Effect.fail(Errors.FindUserByIdError.new(`Not found user Id: ${userId}`)())),
+            Effect.fail(ORGErrors.findORGByIdError.new(`Not found user Id: ${ORGId}`)())),
         )),
-      Effect.andThen(b => b),
-      Effect.andThen(svc => svc.removeById(userId)),
+
+      Effect.andThen(svc => svc.remove(ORGId)),
       Effect.andThen(parseResponse),
       Effect.andThen(data => c.json(data, 200)),
       Effect.catchTags({
-        FindUserByIdError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
+        findORGByIdError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
         PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
-        RemoveUserError: () => Effect.succeed(c.json({ message: "remove error" }, 500)),
+        removeORGError: () => Effect.succeed(c.json({ message: "remove Error" }, 500)),
       }),
-      Effect.withSpan("DELETE /:userId.user.controller"),
+      Effect.withSpan("DELETE /:ORGId.organization.controller"),
     )
 
     const result = await ServicesRuntime.runPromise(program)

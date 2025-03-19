@@ -6,12 +6,12 @@ import { describeRoute } from "hono-openapi"
 import { resolver, validator } from "hono-openapi/effect"
 import { authMiddleware } from "../../middleware/auth.js"
 import { ServicesRuntime } from "../../runtime/indext.js"
-import { Branded, Helpers, OrganizationSchema } from "../../schema/index.js"
-import { OrganizationServiceContext } from "../../services/organization/index.js"
-import * as ORGErrors from "../../types/error/ORG-errors.js"
+import { Branded, Helpers, ProjectSchema } from "../../schema/index.js"
+import { ProjectServiceContext } from "../../services/project/index.js"
+import * as ProjectErrors from "../../types/error/project-errors.js"
 import * as UserErrors from "../../types/error/user-errors.js"
 
-const deleteUserResponseSchema = OrganizationSchema.Schema.omit("deletedAt")
+const deleteUserResponseSchema = ProjectSchema.Schema.omit("deletedAt")
 
 const deleteUserDocs = describeRoute({
   responses: {
@@ -21,7 +21,7 @@ const deleteUserDocs = describeRoute({
           schema: resolver(deleteUserResponseSchema),
         },
       },
-      description: "Delete Organization By UserId",
+      description: "Delete Project By UserId",
     },
     500: {
       content: {
@@ -31,47 +31,47 @@ const deleteUserDocs = describeRoute({
           })),
         },
       },
-      description: "Delete Organization Error",
+      description: "Delete Project Error",
     },
   },
-  tags: ["Admin-Organization"],
+  tags: ["Admin-Project"],
 })
 
 const validateDeleteUserRequest = validator("param", S.Struct({
-  ORGId: Branded.OrganizationIdFromString,
+  projectId: Branded.ProjectIdFromString,
 }))
 
 export function setupDeleteRoutes() {
   const app = new Hono()
 
-  app.delete("/:ORGId", authMiddleware, deleteUserDocs, validateDeleteUserRequest, async (c) => {
-    const { ORGId } = c.req.valid("param")
+  app.delete("/:projectId", authMiddleware, deleteUserDocs, validateDeleteUserRequest, async (c) => {
+    const { projectId } = c.req.valid("param")
     const getUserPayload: UserSchema.UserPayload = c.get("userPayload")
 
     const parseResponse = Helpers.fromObjectToSchemaEffect(deleteUserResponseSchema)
 
-    const program = OrganizationServiceContext.pipe(
+    const program = ProjectServiceContext.pipe(
       Effect.tap(() =>
         getUserPayload.role === "User_Admin"
           ? Effect.void
           : Effect.fail(UserErrors.PermissionDeniedError.new("You do not have permission to access")()),
       ),
-
-      Effect.bind("deletedORG", OrganizationServiceContext =>
-        OrganizationServiceContext.findById(ORGId).pipe(
+      Effect.bind("deletedProject", ProjectServiceContext =>
+        ProjectServiceContext.findById(projectId).pipe(
           Effect.catchTag("NoSuchElementException", () =>
-            Effect.fail(ORGErrors.findORGByIdError.new(`Not found user Id: ${ORGId}`)())),
+            Effect.fail(ProjectErrors.findProjectByIdError.new(`Not found user Id: ${projectId}`)())),
         )),
 
-      Effect.andThen(svc => svc.remove(ORGId)),
+      Effect.andThen(svc => svc.remove(projectId)),
       Effect.andThen(parseResponse),
-      Effect.andThen(data => c.json(data, 200)),
+      Effect.andThen(data => c.json(data, 201)),
       Effect.catchTags({
-        findORGByIdError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
+        findProjectByIdError: () => Effect.succeed(c.json({ message: `Not found Id: ${projectId}` }, 404)),
+        ParseError: () => Effect.succeed(c.json({ messgae: "Parse error " }, 500)),
         PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
-        removeORGError: () => Effect.succeed(c.json({ message: "remove error" }, 500)),
+        removeProjectError: () => Effect.succeed(c.json({ message: "remove Error" }, 500)),
       }),
-      Effect.withSpan("DELETE /:ORGId.organization.controller"),
+      Effect.withSpan("DELETE /:userId.user.controller"),
     )
 
     const result = await ServicesRuntime.runPromise(program)

@@ -7,7 +7,7 @@ import * as Errors from "../../types/error/user-errors.js"
 export function findMany(prismaClient: PrismaClient): UserRepository["findMany"] {
   return () => Effect.tryPromise({
     catch: Errors.FindManyUserError.new(),
-    try: () => prismaClient.user.findMany({
+    try: () => prismaClient.users.findMany({
       where: {
         deletedAt: null,
       },
@@ -21,7 +21,7 @@ export function findMany(prismaClient: PrismaClient): UserRepository["findMany"]
 export function findManyPagination(prismaClient: PrismaClient): UserRepository["findManyPagination"] {
   return (limit: number, offset: number) => Effect.tryPromise({
     catch: Errors.FindManyUserError.new(),
-    try: () => prismaClient.user.findMany({
+    try: () => prismaClient.users.findMany({
       skip: offset,
       take: limit,
       where: {
@@ -37,7 +37,7 @@ export function findManyPagination(prismaClient: PrismaClient): UserRepository["
 export function findById(prismaClient: PrismaClient): UserRepository["findById"] {
   return id => Effect.tryPromise({
     catch: Errors.FindUserByIdError.new(),
-    try: () => prismaClient.user.findUnique({
+    try: () => prismaClient.users.findUnique({
       where: {
         deletedAt: null,
         id,
@@ -53,7 +53,7 @@ export function findById(prismaClient: PrismaClient): UserRepository["findById"]
 export function findallById(prismaClient: PrismaClient): UserRepository["findallById"] {
   return id => Effect.tryPromise({
     catch: Errors.FindUserByIdError.new(),
-    try: () => prismaClient.user.findUnique({
+    try: () => prismaClient.users.findUnique({
       where: {
         id,
       },
@@ -68,7 +68,7 @@ export function findallById(prismaClient: PrismaClient): UserRepository["findall
 export function findByusername(prismaClient: PrismaClient): UserRepository["findByUsername"] {
   return username => Effect.tryPromise({
     catch: Errors.FindUserByUsernameError.new(),
-    try: () => prismaClient.user.findUnique({
+    try: () => prismaClient.users.findUnique({
       where: {
         deletedAt: null,
         username,

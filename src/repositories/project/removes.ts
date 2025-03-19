@@ -7,7 +7,7 @@ import * as Errors from "../../types/error/project-errors.js"
 export function remove(prismaClient: PrismaClient): ProjectRepository["remove"] {
   return id => Effect.tryPromise({
     catch: Errors.removeProjectError.new(),
-    try: () => prismaClient.project.update({
+    try: () => prismaClient.projects.update({
       data: {
         deletedAt: new Date(),
       },
@@ -24,7 +24,7 @@ export function remove(prismaClient: PrismaClient): ProjectRepository["remove"] 
 export function hardRemoveById(prismaClient: PrismaClient): ProjectRepository["hardRemove"] {
   return id => Effect.tryPromise({
     catch: Errors.removeProjectError.new(),
-    try: () => prismaClient.project.delete({
+    try: () => prismaClient.projects.delete({
       where: {
         id,
       },

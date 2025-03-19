@@ -7,7 +7,7 @@ import * as Errors from "../../types/error/user-errors.js"
 export function create(prismaClient: PrismaClient): UserRepository["create"] {
   return data => Effect.tryPromise({
     catch: Errors.CreateUserError.new(),
-    try: () => prismaClient.user.create({
+    try: () => prismaClient.users.create({
       data
     }),
     

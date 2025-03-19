@@ -7,7 +7,7 @@ import * as Errors from "../../types/error/refreshtoken-errors.js"
 export function create(prismaClient: PrismaClient): RefreshTokenRepository["create"] {
   return data => Effect.tryPromise({
     catch: Errors.createRefreshTokenError.new(),
-    try: () => prismaClient.refreshtoken.create({
+    try: () => prismaClient.refreshtokens.create({
       data,
     }),
   }).pipe(

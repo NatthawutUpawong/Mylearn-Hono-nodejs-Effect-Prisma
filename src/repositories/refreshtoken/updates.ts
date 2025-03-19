@@ -7,7 +7,7 @@ import * as Errors from "../../types/error/refreshtoken-errors.js"
 export function update(prismaClient: PrismaClient): RefreshTokenRepository["update"] {
   return (id, data) => Effect.tryPromise({
     catch: Errors.updateRefreshTokenError.new(),
-    try: () => prismaClient.refreshtoken.update({
+    try: () => prismaClient.refreshtokens.update({
       data,
       where: {
         deletedAt: null,
@@ -23,7 +23,7 @@ export function update(prismaClient: PrismaClient): RefreshTokenRepository["upda
 export function updatePartial(prismaClient: PrismaClient): RefreshTokenRepository["updatePartial"] {
   return (id, data) => Effect.tryPromise({
     catch: Errors.updateRefreshTokenError.new(),
-    try: () => prismaClient.refreshtoken.update({
+    try: () => prismaClient.refreshtokens.update({
       data,
       where: {
         deletedAt: null,

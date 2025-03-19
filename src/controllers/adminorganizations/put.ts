@@ -80,7 +80,7 @@ export function setupORGPutRoutes() {
       Effect.catchTags({
         findORGByIdError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
         ORGIdNotMatchError: e => Effect.succeed(c.json({ message: e.msg }, 400)),
-        ParseError: () => Effect.succeed(c.json({ message: "parse error" }, 500)),
+        ParseError: () => Effect.succeed(c.json({ message: "parse Error" }, 500)),
         PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
         updateORGError: () => Effect.succeed(c.json({ message: "update failed" }, 500)),
       }),

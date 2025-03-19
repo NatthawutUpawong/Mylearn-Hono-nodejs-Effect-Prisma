@@ -7,7 +7,7 @@ import * as Errors from "../../types/error/refreshtoken-errors.js"
 export function remove(prismaClient: PrismaClient): RefreshTokenRepository["remove"] {
   return id => Effect.tryPromise({
     catch: Errors.removeRefreshTokenError.new(),
-    try: () => prismaClient.refreshtoken.update({
+    try: () => prismaClient.refreshtokens.update({
       data: {
         deletedAt: new Date(),
       },
@@ -24,7 +24,7 @@ export function remove(prismaClient: PrismaClient): RefreshTokenRepository["remo
 export function hardRemoveById(prismaClient: PrismaClient): RefreshTokenRepository["hardRemoveById"] {
   return id => Effect.tryPromise({
     catch: Errors.removeRefreshTokenError.new(),
-    try: () => prismaClient.refreshtoken.delete({
+    try: () => prismaClient.refreshtokens.delete({
       where: {
         id,
       },
@@ -38,7 +38,7 @@ export function hardRemoveById(prismaClient: PrismaClient): RefreshTokenReposito
 export function hardRemoveByUserId(prismaClient: PrismaClient): RefreshTokenRepository["hardRemoveByUserId"] {
   return userId => Effect.tryPromise({
     catch: Errors.removeRefreshTokenError.new(),
-    try: () => prismaClient.refreshtoken.delete({
+    try: () => prismaClient.refreshtokens.delete({
       where: {
         userId,
       },

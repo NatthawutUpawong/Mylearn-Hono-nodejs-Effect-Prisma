@@ -7,7 +7,7 @@ import * as Errors from "../../types/error/user-errors.js"
 export function update(prismaClient: PrismaClient): UserRepository["update"] {
   return (id, data) => Effect.tryPromise({
     catch: Errors.UpdateUserErro.new(),
-    try: () => prismaClient.user.update({
+    try: () => prismaClient.users.update({
       data,
       where: {
         deletedAt: null,
@@ -23,7 +23,7 @@ export function update(prismaClient: PrismaClient): UserRepository["update"] {
 export function updateByAdmin(prismaClient: PrismaClient): UserRepository["updateByAdmin"] {
   return (id, data) => Effect.tryPromise({
     catch: Errors.UpdateUserErro.new(),
-    try: () => prismaClient.user.update({
+    try: () => prismaClient.users.update({
       data,
       where: {
         deletedAt: null,
@@ -39,7 +39,7 @@ export function updateByAdmin(prismaClient: PrismaClient): UserRepository["updat
 export function updateByUser(prismaClient: PrismaClient): UserRepository["updateByUser"] {
   return (id, data) => Effect.tryPromise({
     catch: Errors.UpdateUserErro.new(),
-    try: () => prismaClient.user.update({
+    try: () => prismaClient.users.update({
       data,
       where: {
         deletedAt: null,
@@ -55,7 +55,7 @@ export function updateByUser(prismaClient: PrismaClient): UserRepository["update
 export function updatePartial(prismaClient: PrismaClient): UserRepository["updatePartial"] {
   return (id, data) => Effect.tryPromise({
     catch: Errors.UpdateUserErro.new(),
-    try: () => prismaClient.user.update({
+    try: () => prismaClient.users.update({
       data,
       where: {
         deletedAt: null,
