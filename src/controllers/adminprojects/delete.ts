@@ -64,7 +64,7 @@ export function setupDeleteRoutes() {
 
       Effect.andThen(svc => svc.remove(projectId)),
       Effect.andThen(parseResponse),
-      Effect.andThen(data => c.json(data, 201)),
+      Effect.andThen(data => c.json(data, 200)),
       Effect.catchTags({
         findProjectByIdError: () => Effect.succeed(c.json({ message: `Not found Id: ${projectId}` }, 404)),
         ParseError: () => Effect.succeed(c.json({ messgae: "Parse error " }, 500)),

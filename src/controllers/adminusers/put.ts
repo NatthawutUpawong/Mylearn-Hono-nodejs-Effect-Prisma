@@ -8,6 +8,7 @@ import { ServicesRuntime } from "../../runtime/indext.js"
 import { Branded, Helpers, UserSchema } from "../../schema/index.js"
 import { OrganizationServiceContext } from "../../services/organization/index.js"
 import { PasswordServiceContext } from "../../services/password/indext.js"
+import { ProjectRelationServiceContext } from "../../services/projectRelation/index.js"
 import { RefreshTokenServiceContext } from "../../services/refreshtoken/index.js"
 import { UserServiceContext } from "../../services/user/index.js"
 import * as ORGErrors from "../../types/error/ORG-errors.js"
@@ -55,6 +56,7 @@ export function setupUserPutRoutes() {
     const programs = Effect.all({
       ORGService: OrganizationServiceContext,
       passwordService: PasswordServiceContext,
+      projectRelationService: ProjectRelationServiceContext,
       refreshtokenService: RefreshTokenServiceContext,
       userServices: UserServiceContext,
     })
@@ -86,8 +88,9 @@ export function setupUserPutRoutes() {
             ? Effect.void
             : Effect.fail(UserErrors.UserIdMatchError.new("Id from param and body id not match")()),
         ),
-        Effect.bind("updateUser", ({ userServices }) =>
+        Effect.bind("updateUser", ({ projectRelationService, userServices }) =>
           userServices.updateByAdmin(userId, body).pipe(
+            Effect.tap(result => projectRelationService.update(result.id, ({ organizationId: result.organizationId }))),
             Effect.andThen(parseResponse),
           )),
         Effect.tap(({ refreshtokenService, updateUser }) => refreshtokenService.findByUserId(updateUser.id).pipe(
@@ -107,6 +110,7 @@ export function setupUserPutRoutes() {
           ParseError: () => Effect.succeed(c.json({ messgae: "Parse error " }, 500)),
           PermissionDeniedError: e => Effect.succeed(c.json({ message: e.msg }, 401)),
           removeRefreshTokenError: () => Effect.succeed(c.json({ messgae: "User updated successfully but remove Refreshtoken Error" }, 500)),
+          updateProjectRelationtError: () => Effect.succeed(c.json({ message: "Update projectrelation Error" }, 500)),
           UserIdMatchError: e => Effect.succeed(c.json({ message: e.msg }, 400)),
         }),
 

@@ -10,12 +10,11 @@ export type ProjectRelationRepository = {
   create: (data: ProjectRelaionSchema.CreateProjectRelationEncoded) => Effect.Effect<ProjectRelationsWithRelationsSchema.ProjectWithRelations, Errors.createProjectRelationtError | ParseError>
   findById: (id: Branded.ProjectId) => Effect.Effect<ProjectRelation, Errors.findProjectRelationtByIdError | ParseError | NoSuchElementException>
   findMany: (whereCondition: any) => Effect.Effect<ProjectSchema.ProjectArray, Errors.findManyProjectRelationtError>
-  // findManyWithRelation: () => Effect.Effect<ProjectRelationsWithRelationsSchema.ProjectWithRelationsArray, Errors.findManyProjectRelationtError>
   count: (whereCondition: any) => Effect.Effect<number, Errors.findManyProjectRelationtError>
   findManyPagination: (limit: number, offset: number, whereCondition: any) => Effect.Effect<ProjectSchema.ProjectArray, Errors.findManyProjectRelationtError >
 
   // update: (id: Branded.ProjectRelationId, data: ProjectRelaionSchema.UpdateProjectRelationEncoded) => Effect.Effect<ProjectRelation, Errors.updateProjectRelationtError | ParseError>
-  // updatePartial: (id: Branded.OrganizationId, data: Partial<ProjectRelaionSchema.UpdateProjectRelationEncoded>) => Effect.Effect<ProjectRelation, Errors.updateProjectRelationtError>
+  updatePartial: (id: Branded.UserId, data: Partial<ProjectRelaionSchema.UpdateProjectRelationEncoded>) => Effect.Effect<ProjectRelaionSchema.ProjectRelationArray, Errors.updateProjectRelationtError>
   // remove: (id: Branded.ProjectRelationId) => Effect.Effect<ProjectRelation, Errors.removeProjectRelationtError>
   // hardRemove: (id: Branded.ProjectRelationId) => Effect.Effect<ProjectRelation, Errors.removeProjectRelationtError>
 }

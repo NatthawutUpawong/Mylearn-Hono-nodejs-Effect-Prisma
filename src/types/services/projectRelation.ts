@@ -12,6 +12,6 @@ export type ProjectRelationService = {
       pagination: paginationSchema.pagination
   }, Errors.findManyProjectRelationtError>
   // findManyWithRelation: ProjectRelationRepository["findManyWithRelation"]
-  // update: ProjectRelationRepository["update"]
+  update: ProjectRelationRepository["updatePartial"]
   // remove: ProjectRelationRepository["remove"]
 }

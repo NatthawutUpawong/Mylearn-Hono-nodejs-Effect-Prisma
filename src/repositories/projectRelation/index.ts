@@ -6,7 +6,7 @@ import * as Count from "./count.js"
 import * as Creates from "./creates.js"
 import * as Finds from "./finds.js"
 // import * as Removes from "./removes.js"
-// import * as Updates from "./updates.js"
+import * as Updates from "./updates.js"
 
 function initProjectRelationRepositoryContext(prismaClient: PrismaClient): Types.ProjectRelationRepository {
   return {
@@ -15,6 +15,7 @@ function initProjectRelationRepositoryContext(prismaClient: PrismaClient): Types
     findById: Finds.findById(prismaClient),
     findMany: Finds.findMany(prismaClient),
     findManyPagination: Finds.findManyPagination(prismaClient),
+    updatePartial: Updates.updatePartial(prismaClient),
   }
 }
 

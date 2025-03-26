@@ -1,0 +1,30 @@
+import { Context, Effect, Layer } from "effect";
+import PrismaClientContext from "../prisma.js";
+import * as Count from "./count.js";
+import * as Creates from "./creates.js";
+import * as Finds from "./finds.js";
+import * as Removes from "./removes.js";
+import * as Updates from "./updates.js";
+function initUserRepository(prismaClient) {
+    return {
+        count: Count.count(prismaClient),
+        create: Creates.create(prismaClient),
+        findallById: Finds.findallById(prismaClient),
+        findById: Finds.findById(prismaClient),
+        findByUsername: Finds.findByusername(prismaClient),
+        findMany: Finds.findMany(prismaClient),
+        findManyPagination: Finds.findManyPagination(prismaClient),
+        hardRemove: Removes.hardRemoveById(prismaClient),
+        remove: Removes.remove(prismaClient),
+        update: Updates.update(prismaClient),
+        updateByAdmin: Updates.updateByAdmin(prismaClient),
+        updateByUser: Updates.updateByUser(prismaClient),
+        updatePartial: Updates.updatePartial(prismaClient),
+    };
+}
+export class UserRepositoryContext extends Context.Tag("repository/User")() {
+    static Live = Layer.effect(this, Effect.gen(function* () {
+        const prismaClient = yield* PrismaClientContext;
+        return initUserRepository(prismaClient);
+    }));
+}

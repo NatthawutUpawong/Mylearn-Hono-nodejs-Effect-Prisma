@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -48,14 +49,14 @@ model projectRelations {
   id                Int       @id @default(autoincrement())
   userId            Int
   projectId         Int        @unique
-  organizationId    Int
+  organizationId    Int?
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
   deletedAt         DateTime?
 
   user             users         @relation(fields: [userId], references: [id], onDelete: Cascade)
   project          projects      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  organization     organizations @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization     organizations? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model refreshtokens{

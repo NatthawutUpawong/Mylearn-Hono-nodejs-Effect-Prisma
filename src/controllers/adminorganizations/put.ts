@@ -39,15 +39,15 @@ const putDocss = honoOpenapi.describeRoute({
 
 const validateRequestBody = validator("json", OrganizationSchema.UpdateSchema)
 const validateUpdateParam = validator("param", S.Struct({
-  ORGId: Branded.OrganizationIdFromString,
+  OrganizationId: Branded.OrganizationIdFromString,
 }))
 
 export function setupORGPutRoutes() {
   const app = new Hono()
 
-  app.put("/:ORGId", authMiddleware, putDocss, validateRequestBody, validateUpdateParam, async (c) => {
+  app.put("/:OrganizationId", authMiddleware, putDocss, validateRequestBody, validateUpdateParam, async (c) => {
     const body = c.req.valid("json")
-    const { ORGId } = c.req.valid("param")
+    const { OrganizationId } = c.req.valid("param")
     const userPayload: UserSchema.UserPayload = c.get("userPayload")
 
     const parseResponse = Helpers.fromObjectToSchemaEffect(responseSchema)
@@ -61,9 +61,9 @@ export function setupORGPutRoutes() {
           : Effect.fail(UserErrors.PermissionDeniedError.new("You do not have permission to access")()),
       ),
       Effect.tap(() => Effect.log("Update starting")),
-      Effect.bind("existingORG", ({ ORGService }) => ORGService.findById(ORGId).pipe(
+      Effect.bind("existingORG", ({ ORGService }) => ORGService.findById(OrganizationId).pipe(
         Effect.catchTag("NoSuchElementException", () =>
-          Effect.fail(ORGErrors.findORGByIdError.new(`not found Id: ${ORGId}`)())),
+          Effect.fail(ORGErrors.findORGByIdError.new(`not found Id: ${OrganizationId}`)())),
       )),
       Effect.bind("newName", ({ existingORG }) =>
         Effect.succeed(body.name.trim() === "" ? existingORG.name : body.name)),
@@ -73,7 +73,7 @@ export function setupORGPutRoutes() {
           : Effect.fail(ORGErrors.ORGIdNotMatchError.new("Id from param and body id not match")()),
       ),
       Effect.andThen(b => b),
-      Effect.andThen(({ newName, ORGService }) => ORGService.update(ORGId, { ...body, name: newName })),
+      Effect.andThen(({ newName, ORGService }) => ORGService.update(OrganizationId, { ...body, name: newName })),
 
       Effect.andThen(parseResponse),
       Effect.andThen(data => c.json(data, 200)),

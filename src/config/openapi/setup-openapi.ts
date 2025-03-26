@@ -21,6 +21,14 @@ export function setupOpenApi(app: Hono) {
             description: "Prod server",
             url: "https://api.app.com",
           },
+          {
+            description: "Docker server",
+            url: "https://eager_bardeen.orb.local",
+          },
+          {
+            description: "Docker server",
+            url: "https://app-api.third-party.orb.local",
+          },
         ],
         "x-tagGroups": [
           {

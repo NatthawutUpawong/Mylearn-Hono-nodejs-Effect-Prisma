@@ -11,10 +11,6 @@
 # deps
 node_modules/
 
-# env
-.env
-.env.production
-
 # logs
 logs/
 *.log
@@ -32,3 +28,4 @@ lerna-debug.log*
  dist
  
 third-party
+.env.keys

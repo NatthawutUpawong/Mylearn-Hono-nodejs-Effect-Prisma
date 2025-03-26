@@ -1,4 +1,4 @@
-import { config } from "@dotenvx/dotenvx"
+// import { config } from "@dotenvx/dotenvx"
 import { serve } from "@hono/node-server"
 import { Hono } from "hono"
 import { setupOpenApi } from "./config/openapi/setup-openapi.js"
@@ -13,15 +13,15 @@ import * as ProjectController from "./controllers/projects/index.js"
 import * as RefreshTokenController from "./controllers/refreshtoken/index.js"
 import * as UserController from "./controllers/users/index.js"
 
-config()
+// config()
 
 const app = new Hono()
 setupOpenApi(app)
 
-app.route("/admin", AdminUserController.setupUserByAdminRoutes())
-app.route("/adminorganization", AdminOrganizationController.setupOrganizationByAdminRoutes())
-app.route("/adminproject", AdminProjectController.setupProjectByAdminRoutes())
-app.route("/adminrefreshToken", AdminRefreshTokenController.setupRefreshTokenByAdminRoutes())
+app.route("/admin/user", AdminUserController.setupUserByAdminRoutes())
+app.route("/admin/organization", AdminOrganizationController.setupOrganizationByAdminRoutes())
+app.route("/admin/project", AdminProjectController.setupProjectByAdminRoutes())
+app.route("/admin/refreshToken", AdminRefreshTokenController.setupRefreshTokenByAdminRoutes())
 
 app.route("/users", UserController.setupUserRoutes())
 app.route("/organization", ORGController.setupOrganizationRoutes())
