@@ -48,16 +48,5 @@ export function setupUserGetRoutes() {
     return await ServicesRuntime.runPromise(program)
   })
 
-  app.get("/env", getProfileDocs, async (c) => {
-    const secretKey = process.env.SECRET_KEY ?? "default_secret"
-    const DBUrl = process.env.DATABASE_URL
-
-    if (secretKey && DBUrl) {
-      return c.json({ DBUrl, secretKey })
-    }
-
-    return c.json({ message: "env is missing" })
-  })
-
   return app
 }
