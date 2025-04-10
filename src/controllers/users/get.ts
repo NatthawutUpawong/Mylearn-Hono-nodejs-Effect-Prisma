@@ -1,3 +1,4 @@
+import { config } from "@dotenvx/dotenvx"
 import { Effect } from "effect"
 import * as S from "effect/Schema"
 import { Hono } from "hono"
@@ -6,6 +7,8 @@ import { resolver } from "hono-openapi/effect"
 import { authMiddleware } from "../../middleware/auth.js"
 import { ServicesRuntime } from "../../runtime/indext.js"
 import { UserSchema } from "../../schema/index.js"
+
+config()
 
 export function setupUserGetRoutes() {
   const app = new Hono()

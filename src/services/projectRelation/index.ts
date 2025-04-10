@@ -16,7 +16,7 @@ export class ProjectRelationServiceContext extends Context.Tag("service/ProjectR
           findById: id => repo.findById(id).pipe(
             Effect.withSpan("find-by-id.projectrelation.service"),
           ),
-          findMany: (whereCondition) => repo.findMany(whereCondition).pipe(
+          findMany: whereCondition => repo.findMany(whereCondition).pipe(
             Effect.withSpan("findmany.Projectrelation.service"),
           ),
           findManyPagination: (limit, offset, page, whereCondition) =>
@@ -46,6 +46,9 @@ export class ProjectRelationServiceContext extends Context.Tag("service/ProjectR
               ),
               Effect.withSpan("find-pagination.project.service"),
             ),
+          update: (id, data) => repo.updatePartial(id, data).pipe(
+            Effect.withSpan("update-partial.Projectrelation.service"),
+          ),
         } satisfies ProjectRelationService
       }),
     ),

@@ -38,14 +38,14 @@ const deleteUserDocs = describeRoute({
 })
 
 const validateDeleteUserRequest = validator("param", S.Struct({
-  ORGId: Branded.OrganizationIdFromString,
+  OrganizationId: Branded.OrganizationIdFromString,
 }))
 
 export function setupDeleteRoutes() {
   const app = new Hono()
 
-  app.delete("/:ORGId", authMiddleware, deleteUserDocs, validateDeleteUserRequest, async (c) => {
-    const { ORGId } = c.req.valid("param")
+  app.delete("/:OrganizationId", authMiddleware, deleteUserDocs, validateDeleteUserRequest, async (c) => {
+    const { OrganizationId } = c.req.valid("param")
     const getUserPayload: UserSchema.UserPayload = c.get("userPayload")
 
     const parseResponse = Helpers.fromObjectToSchemaEffect(deleteUserResponseSchema)
@@ -58,12 +58,12 @@ export function setupDeleteRoutes() {
       ),
 
       Effect.bind("deletedORG", OrganizationServiceContext =>
-        OrganizationServiceContext.findById(ORGId).pipe(
+        OrganizationServiceContext.findById(OrganizationId).pipe(
           Effect.catchTag("NoSuchElementException", () =>
-            Effect.fail(ORGErrors.findORGByIdError.new(`Not found user Id: ${ORGId}`)())),
+            Effect.fail(ORGErrors.findORGByIdError.new(`Not found user Id: ${OrganizationId}`)())),
         )),
 
-      Effect.andThen(svc => svc.remove(ORGId)),
+      Effect.andThen(svc => svc.remove(OrganizationId)),
       Effect.andThen(parseResponse),
       Effect.andThen(data => c.json(data, 200)),
       Effect.catchTags({

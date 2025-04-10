@@ -101,7 +101,7 @@ export function setupUserPostRoutes() {
         Effect.catchTag("NoSuchElementException", () => Effect.void),
 
       )),
-      Effect.andThen(b => b),
+      // Effect.andThen(b => b),
 
       Effect.tap(({ passwordService }) => passwordService.isPassword8CharLongEffect(body.password)),
 
