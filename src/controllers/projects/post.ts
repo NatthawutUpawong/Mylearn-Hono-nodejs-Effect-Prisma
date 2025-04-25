@@ -11,6 +11,7 @@ import { Helpers, ProjectRelaionSchema, ProjectRelationsWithRelationsSchema, Pro
 import { authMiddleware } from "../../middleware/auth.js"
 import { ProjectServiceContext } from "../../services/project/index.js"
 import { ProjectRelationServiceContext } from "../../services/projectRelation/index.js"
+import * as UserErrors from "../../types/error/user-errors.js"
 
 const responseSchema = ProjectRelationsWithRelationsSchema.Schema.omit("deletedAt")
 
@@ -55,6 +56,11 @@ export function setupProjectPostRoutes() {
       ProjectService: ProjectServiceContext,
 
     }).pipe(
+      Effect.tap(() =>
+        getUserPayload.organizationId == null
+          ? Effect.fail(UserErrors.NoORGError.new(`No ORG is assigned to the user`)())
+          : Effect.void,
+      ),
       Effect.bind("createProjectInfo", ({ ProjectService }) => ProjectService.create(body).pipe(
       )),
 
@@ -72,7 +78,9 @@ export function setupProjectPostRoutes() {
       Effect.catchTags({
         createProjectError: () => Effect.succeed(c.json({ message: "create project error" }, 500)),
         createProjectRelationtError: () => Effect.succeed(c.json({ message: "create projectRelation error" }, 500)),
+        NoORGError: e => Effect.succeed(c.json({ message: e.msg }, 400)),
         ParseError: () => Effect.succeed(c.json({ message: "Parse Error" }, 500)),
+
       }),
       Effect.withSpan("POST /.project.controller"),
     )

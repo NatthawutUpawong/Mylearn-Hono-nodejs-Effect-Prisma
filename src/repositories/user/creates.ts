@@ -8,12 +8,11 @@ export function create(prismaClient: PrismaClient): UserRepository["create"] {
   return data => Effect.tryPromise({
     catch: Errors.CreateUserError.new(),
     try: () => prismaClient.users.create({
-      data
+      data,
     }),
-    
+
   }).pipe(
     Effect.andThen(Helpers.fromObjectToSchema(UserSchema.Schema)),
-    Effect.withSpan("create.user.repositoty")
+    Effect.withSpan("create.user.repositoty"),
   )
- 
 }

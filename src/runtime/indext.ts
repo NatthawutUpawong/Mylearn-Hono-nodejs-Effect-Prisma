@@ -14,6 +14,7 @@ import { ProjectRelationRepositoryContext } from "../repositories/projectRelatio
 import { UserroleCheckServiceContext } from "../services/userauthen/index.js"
 import { RefreshTokenServiceContext } from "../services/refreshtoken/index.js"
 import { RefreshTokenRepositoryContext } from "../repositories/refreshtoken/index.js"
+import { MinioServiceContext } from "../services/minio/index.js"
 
 const PrismaClientLive = PrismaClientContext.Live
 
@@ -51,6 +52,8 @@ export const ServiceLive = Layer.mergeAll(
   PasswordServiceContext.Default,
   JwtServiceContext.Default,
   UserroleCheckServiceContext.Default,
+  MinioServiceContext.Default,
+
 )
 
 export const ServicesRuntime = ManagedRuntime.make(ServiceLive)

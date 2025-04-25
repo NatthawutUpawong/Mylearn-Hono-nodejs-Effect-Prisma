@@ -34,7 +34,8 @@
     "effect": "^3.12.9",
     "hono": "^4.6.20",
     "hono-openapi": "^0.4.4",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "minio": "^8.0.5"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^4.1.1",

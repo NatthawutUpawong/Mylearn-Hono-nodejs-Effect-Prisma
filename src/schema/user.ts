@@ -11,6 +11,8 @@ export const Schema = S.Struct({
   password: S.String,
   role: Role,
   organizationId: S.NullOr(Branded.OrganizationId),
+  profileImageURL: S.NullOr(S.String),
+  profileImageName: S.NullOr(S.String),
   ...GeneralSchema.TimeStampSchema.fields,
   _tag: S.Literal("User").pipe(S.optional, S.withDefaults({
     constructor: () => "User" as const,
@@ -25,7 +27,7 @@ export const SchemaArray = S.Array(Schema)
 export type UserArray = S.Schema.Type<typeof SchemaArray>
 export type UserArrayEncoded = S.Schema.Encoded<typeof SchemaArray>
 
-export const CreateSchema = Schema.pick("username", "password", "organizationId")
+export const CreateSchema = Schema.pick("username", "password")
 export type CreateUser = S.Schema.Type<typeof CreateSchema>
 export type CreateUserEncoded = S.Schema.Encoded<typeof CreateSchema>
 
@@ -33,11 +35,15 @@ export const UpdateSchema = Schema.omit("_tag", "createdAt", "updatedAt", "delet
 export type UpdateUser = S.Schema.Type<typeof UpdateSchema>
 export type UpdateUserEncoded = S.Schema.Encoded<typeof UpdateSchema>
 
-export const UpdateByUserSchema = Schema.omit("organizationId", "role", "_tag", "createdAt", "updatedAt", "deletedAt")
+export const UpdateByUserSchema = Schema.omit("organizationId", "role", "_tag", "createdAt", "profileImageURL", "profileImageURL", "updatedAt", "deletedAt")
 export type UpdateUserByUser = S.Schema.Type<typeof UpdateByUserSchema>
 export type UpdateUserByUserEncoded = S.Schema.Encoded<typeof UpdateByUserSchema>
 
-export const UpdateByAdminSchema = Schema.omit("username", "password", "_tag", "createdAt", "updatedAt", "deletedAt")
+export const UpdateImageByUserSchema = Schema.omit("organizationId", "role", "_tag", "createdAt", "updatedAt", "deletedAt")
+export type UpdateUserImageByUser = S.Schema.Type<typeof UpdateImageByUserSchema>
+export type UpdateUserImageByUserEncoded = S.Schema.Encoded<typeof UpdateImageByUserSchema>
+
+export const UpdateByAdminSchema = Schema.omit("username", "password", "_tag", "profileImageURL", "profileImageURL", "createdAt", "updatedAt", "deletedAt")
 export type UpdateUserByAdmin = S.Schema.Type<typeof UpdateByAdminSchema>
 export type UpdateUserByAdminEncoded = S.Schema.Encoded<typeof UpdateByAdminSchema>
 

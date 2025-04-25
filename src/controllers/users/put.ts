@@ -2,11 +2,13 @@ import { Effect } from "effect"
 import * as S from "effect/Schema"
 import { Hono } from "hono"
 import { describeRoute } from "hono-openapi"
+import * as honoOpenapi from "hono-openapi"
 import { resolver, validator } from "hono-openapi/effect"
 import { deleteCookie } from "hono/cookie"
 import { authMiddleware } from "../../middleware/auth.js"
 import { ServicesRuntime } from "../../runtime/indext.js"
 import { Branded, Helpers, UserSchema } from "../../schema/index.js"
+import { MinioServiceContext } from "../../services/minio/index.js"
 import { OrganizationServiceContext } from "../../services/organization/index.js"
 import { PasswordServiceContext } from "../../services/password/indext.js"
 import { UserServiceContext } from "../../services/user/index.js"
@@ -42,6 +44,43 @@ export function setupUserPutRoutes() {
     },
     tags: ["User"],
   })
+
+  const responseSchema = UserSchema.UpdateImageByUserSchema
+
+  const putDocs = honoOpenapi.describeRoute({
+    responses: {
+      201: {
+        content: {
+          "application/json": {
+            schema: resolver(
+              S.Struct({
+                message: S.Literal("Upload successfully"),
+              }),
+            ),
+          },
+        },
+        description: "Upload Image",
+      },
+      500: {
+        content: {
+          "application/json": {
+            schema: resolver(S.Struct({
+              message: S.String,
+            })),
+          },
+        },
+        description: "Upload Image Error",
+      },
+    },
+    tags: ["User"],
+  })
+
+  const validateCreateRequestFile = validator(
+    "form",
+    S.Struct({
+      upload_image: S.Any,
+    }),
+  )
 
   const validateUpdateUserRequest = validator("json", UserSchema.UpdateByUserSchema)
 
@@ -97,8 +136,6 @@ export function setupUserPutRoutes() {
           ),
         ),
 
-        Effect.andThen(b => b),
-
         Effect.tap(() =>
           userId === getUserPayload.id
             ? Effect.void
@@ -115,6 +152,7 @@ export function setupUserPutRoutes() {
             Effect.tap(() => deleteCookie(c, "AccessToken")),
           ),
         ),
+        Effect.tap(b => console.log(b)),
 
         Effect.andThen(parseResponse),
         Effect.andThen(data => c.json(data, 200)),
@@ -132,6 +170,52 @@ export function setupUserPutRoutes() {
         Effect.withSpan("PUT /user.controller"),
       )
     const result = await ServicesRuntime.runPromise(programs)
+    return result
+  })
+
+  app.put("/Update-Profile", putDocs, authMiddleware, validateCreateRequestFile, async (c) => {
+    const getUserPayload: UserSchema.UserPayload = c.get("userPayload")
+
+    const form = c.req.valid("form")
+
+    // const body = c.req.valid("json")
+
+    const parseResponse = Helpers.fromObjectToSchemaEffect(responseSchema)
+
+    const program = Effect.all({
+      minioService: MinioServiceContext,
+      UserService: UserServiceContext,
+
+    }).pipe(
+      Effect.bind("UserInfo", ({ UserService }) => UserService.findOneById(getUserPayload.id)),
+      Effect.bind("MinioResponse", ({ minioService }) => minioService.uploadImageFile(form.upload_image)),
+      Effect.bind("UpdateResponse", ({ MinioResponse, UserService }) =>
+        UserService.updatePartial(getUserPayload.id, {
+          profileImageName: MinioResponse.name,
+          profileImageURL: MinioResponse.path,
+
+        })),
+
+      Effect.tap(({ minioService, UserInfo }) => minioService.deleteFile(UserInfo.profileImageName)),
+
+      Effect.andThen(data => data.UpdateResponse),
+
+      Effect.andThen(parseResponse),
+
+      Effect.andThen(() => c.json("Upload successfully", 200)),
+
+      Effect.catchTags({
+        FileNameError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
+        FileSizeError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
+        FileTypeError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
+        FindUserByIdError: e => Effect.succeed(c.json({ message: e.msg }, 500)),
+        ParseError: () => Effect.succeed(c.json({ message: "Parse error" }, 500)),
+        UpdateUserErroe: e => Effect.succeed(c.json({ message: e.msg }, 500)),
+      }),
+      Effect.withSpan("PUT /.image.controller"),
+    )
+
+    const result = await ServicesRuntime.runPromise(program)
     return result
   })
 

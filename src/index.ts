@@ -28,6 +28,7 @@ app.route("/organization", ORGController.setupOrganizationRoutes())
 app.route("/project", ProjectController.setupProjectRoutes())
 app.route("/refreshToken", RefreshTokenController.setupRefreshTokenRoutes())
 
+
 app.route("/docs", setupScalarDocs())
 app.route("/healthz", healthzApp)
 
