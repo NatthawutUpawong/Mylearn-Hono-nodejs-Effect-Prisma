@@ -1,6 +1,5 @@
 import type { UserRepository } from "../../types/repositories/user.js"
 import type { UserService } from "../../types/services/user.js"
-import jwt from "jsonwebtoken"
 
 // export function findMany(UserRepository: UserRepository): UserService["findMany"] {
 //   return async () => {

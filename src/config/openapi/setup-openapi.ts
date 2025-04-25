@@ -33,7 +33,7 @@ export function setupOpenApi(app: Hono) {
         "x-tagGroups": [
           {
             name: "General User",
-            tags: ["User", "Organization", "Project", "RefreshToken"],
+            tags: ["User", "Organization", "Project", "RefreshToken", "Images"],
           },
           {
             name: "Admin",

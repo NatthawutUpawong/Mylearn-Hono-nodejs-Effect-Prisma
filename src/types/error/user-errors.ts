@@ -85,3 +85,6 @@ export class UserIdMatchError extends Data.TaggedError("UserIdMatchError")<Error
 export class SetCookieError extends Data.TaggedError("SetCookieError")<ErrorMsg> {
   static new = createErrorFactory(this)
 }
+export class NoORGError extends Data.TaggedError("NoORGError")<ErrorMsg> {
+  static new = createErrorFactory(this)
+}

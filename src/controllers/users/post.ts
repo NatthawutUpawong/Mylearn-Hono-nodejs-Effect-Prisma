@@ -13,13 +13,13 @@ import { OrganizationServiceContext } from "../../services/organization/index.js
 import { PasswordServiceContext } from "../../services/password/indext.js"
 import { RefreshTokenServiceContext } from "../../services/refreshtoken/index.js"
 import { UserServiceContext } from "../../services/user/index.js"
-import * as ORGErrors from "../../types/error/ORG-errors.js"
+// import * as ORGErrors from "../../types/error/ORG-errors.js"
 import * as UserErrors from "../../types/error/user-errors.js"
 
 export function setupUserPostRoutes() {
   const app = new Hono()
 
-  const responseSchema = UserSchema.Schema.omit("deletedAt")
+  const responseSchema = UserSchema.Schema.omit("deletedAt", "password")
 
   const postDocs = honoOpenapi.describeRoute({
     responses: {
@@ -73,7 +73,7 @@ export function setupUserPostRoutes() {
     tags: ["User"],
   })
 
-  app.post("/", postDocs, validateRequestBody, async (c) => {
+  app.post("/register", postDocs, validateRequestBody, async (c) => {
     const body = c.req.valid("json")
 
     const parseResponse = Helpers.fromObjectToSchemaEffect(responseSchema)
@@ -85,15 +85,6 @@ export function setupUserPostRoutes() {
     }).pipe(
       Effect.tap(() => Effect.log("Signup starting")),
 
-      Effect.tap(({ ORGService }) =>
-        body.organizationId === null
-          ? Effect.void
-          : ORGService.findById(body.organizationId).pipe(
-              Effect.catchTag("NoSuchElementException", () =>
-                Effect.fail(ORGErrors.findORGByIdError.new(`ORG Id: ${body.organizationId} nofound`)())),
-            ),
-      ),
-      
       Effect.tap(({ userServices }) => userServices.findByUsername(body.username).pipe(
         Effect.andThen(() =>
           Effect.fail(UserErrors.UsernameAlreadyExitError.new(`Username: ${body.username} already exists`)()),
@@ -118,7 +109,6 @@ export function setupUserPostRoutes() {
         CreateUserError: () => Effect.succeed(c.json({ message: "create Error" }, 500)),
         InvalidPasswordError: e => Effect.succeed(c.json({ message: e.msg }, 400)),
         UsernameAlreadyExitError: e => Effect.succeed(c.json({ message: e.msg }, 409)),
-        findORGByIdError: e => Effect.succeed(c.json({ message: e.msg }, 404)),
 
       }),
       Effect.withSpan("POST /.user.controller"),

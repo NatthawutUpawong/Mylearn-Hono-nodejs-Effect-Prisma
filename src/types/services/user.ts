@@ -13,6 +13,7 @@ export type UserService = {
   update: (id: Branded.UserId, data: UserSchema.UpdateUser) => Effect.Effect<UserSchema.User, Errors.UpdateUserErro | ParseError>
   updateByAdmin: (id: Branded.UserId, data: UserSchema.UpdateUserByAdminEncoded) => Effect.Effect<UserSchema.UpdateUserByAdmin, Errors.UpdateUserErro | ParseError>
   updateByUser: (id: Branded.UserId, data: UserSchema.UpdateUserByUserEncoded) => Effect.Effect<UserSchema.UpdateUserByUser, Errors.UpdateUserErro | ParseError>
+  updatePartial: (id: Branded.UserId, data: Partial<UserSchema.UpdateUserImageByUserEncoded>) => Effect.Effect<UserSchema.UpdateUserImageByUserEncoded, Errors.UpdateUserErro | ParseError>
   removeById: (id: Branded.UserId) => Effect.Effect<UserSchema.User, Errors.RemoveUserError>
   findManyPagination: (limit: number, offset: number, page: number) => Effect.Effect<{
     data: UserSchema.UserArray

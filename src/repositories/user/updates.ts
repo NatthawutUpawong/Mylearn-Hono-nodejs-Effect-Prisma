@@ -11,12 +11,12 @@ export function update(prismaClient: PrismaClient): UserRepository["update"] {
       data,
       where: {
         deletedAt: null,
-        id
-      }
+        id,
+      },
     }),
   }).pipe(
     Effect.andThen(Helpers.fromObjectToSchema(UserSchema.Schema)),
-    Effect.withSpan("update.user.repository")
+    Effect.withSpan("update.user.repository"),
   )
 }
 
@@ -27,12 +27,12 @@ export function updateByAdmin(prismaClient: PrismaClient): UserRepository["updat
       data,
       where: {
         deletedAt: null,
-        id
-      }
+        id,
+      },
     }),
   }).pipe(
     Effect.andThen(Helpers.fromObjectToSchema(UserSchema.UpdateByAdminSchema)),
-    Effect.withSpan("update.user-by-admin.repository")
+    Effect.withSpan("update.user-by-admin.repository"),
   )
 }
 
@@ -43,14 +43,27 @@ export function updateByUser(prismaClient: PrismaClient): UserRepository["update
       data,
       where: {
         deletedAt: null,
-        id
-      }
+        id,
+      },
     }),
   }).pipe(
     Effect.andThen(Helpers.fromObjectToSchema(UserSchema.UpdateByUserSchema)),
-    Effect.withSpan("update.user-by-admin.repository")
+    Effect.withSpan("update.user-by-admin.repository"),
   )
 }
+
+// export function updatePartial(prismaClient: PrismaClient): UserRepository["updatePartial"] {
+//   return (id, data) => Effect.tryPromise(() => prismaClient.users.update({ data, where: { deletedAt: null, id } }))
+//   .pipe(
+//     Effect.tap(() => console.log("form repo = ", id, data)),
+//     Effect.mapError(e => {
+//       console.error("❌ Error from Prisma update:", e)
+//       return Errors.UpdateUserErro.new("error form repo")()
+//     }),
+//     Effect.andThen(Helpers.fromObjectToSchema(UserSchema.Schema)),
+//     Effect.withSpan("update-partial.user.repository")
+//   )
+// }
 
 export function updatePartial(prismaClient: PrismaClient): UserRepository["updatePartial"] {
   return (id, data) => Effect.tryPromise({
@@ -59,11 +72,11 @@ export function updatePartial(prismaClient: PrismaClient): UserRepository["updat
       data,
       where: {
         deletedAt: null,
-        id
-      }
+        id,
+      },
     }),
   }).pipe(
-    Effect.andThen(Helpers.fromObjectToSchema(UserSchema.Schema)),
-    Effect.withSpan("updatePartial.user.repository")
+    Effect.andThen(Helpers.fromObjectToSchema(UserSchema.UpdateImageByUserSchema)),
+    Effect.withSpan("update-partial.user.repository"),
   )
 }

@@ -75,6 +75,7 @@ export function findByusername(prismaClient: PrismaClient): UserRepository["find
       },
     }),
   }).pipe(
+    // Effect.andThen(b => console.log(b)),
     Effect.andThen(Effect.fromNullable),
     Effect.andThen(Helpers.fromObjectToSchema(UserSchema.Schema)),
     Effect.withSpan("find-by-username.username.repository"),
