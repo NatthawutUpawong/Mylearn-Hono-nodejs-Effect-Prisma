@@ -22,16 +22,3 @@ function getMinIOClientCurried() {
 }
 
 export const getMinIOClient = getMinIOClientCurried()
-
-// import { Effect } from "effect"
-// import * as Minio from "minio"
-
-// export const getMinIOClient = Effect.sync(() => {
-//   return new Minio.Client({
-//     accessKey: "DZsTe4ihumN0sqDtzFOQ",
-//     endPoint: "localhost",
-//     port: 9000,
-//     secretKey: "A6yrRNhtTiZ8wZ2orraGxB4ZUO2sDg4XyFoUascb",
-//     useSSL: false,
-//   })
-// })
